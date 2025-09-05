@@ -1,0 +1,14 @@
+{
+  "name": "@openagent/sidecar",
+  "version": "1.0.0",
+  "main": "dist/src/index.js",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@opencode-ai/sdk": "^0.6.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
