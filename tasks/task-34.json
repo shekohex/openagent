@@ -1,0 +1,36 @@
+{
+  "id": "task-34",
+  "title": "Export: GitHub push",
+  "description": "Implement GitHub export with user-provided token; push to repo/branch.",
+  "requirements": [
+    "Accept repo URL, branch, and commit message",
+    "Create temp git repo from current workspace",
+    "Push over HTTPS using provided token",
+    "Record artifact with commit SHA"
+  ],
+  "plan": [
+    "Accept repo URL and branch",
+    "Create temporary git repo from workspace",
+    "Push using provided token; store artifact record"
+  ],
+  "expected_outcome": "Workspace exported to GitHub repository.",
+  "acceptance_criteria": [
+    "Push succeeds and returns commit SHA",
+    "No token persisted or logged",
+    "Artifact record includes repo, branch, SHA"
+  ],
+  "deliverables": [
+    "apps/sidecar/export_github.ts",
+    "apps/orchestrator/routes/export_github.ts"
+  ],
+  "test_plan": [
+    "Mock git remote and verify push flow",
+    "Token redaction tests"
+  ],
+  "references": [
+    "PLAN.md",
+    "Git CLI usage via Bun.$"
+  ],
+  "dependencies": ["task-27", "task-3"],
+  "status": "pending"
+}

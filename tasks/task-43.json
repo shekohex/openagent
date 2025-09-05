@@ -1,0 +1,35 @@
+{
+  "id": "task-43",
+  "title": "Model/provider switching per message",
+  "description": "Allow selecting provider/model per message and inject keys on-demand.",
+  "requirements": [
+    "UI selector binds provider/model to outgoing prompt",
+    "Orchestrator includes provider/model in proxy payload",
+    "Sidecar switches SDK client or injects key on demand"
+  ],
+  "plan": [
+    "UI binds selector values to prompt",
+    "Orchestrator attaches provider info to sidecar call",
+    "Sidecar injects key if needed before SDK call"
+  ],
+  "expected_outcome": "Messages can target different models and providers.",
+  "acceptance_criteria": [
+    "Different messages can use different models",
+    "Missing key leads to actionable error",
+    "No provider leakage across sessions"
+  ],
+  "deliverables": [
+    "apps/frontend/src/components/ProviderSelector.tsx",
+    "apps/orchestrator/routes/sessions_proxy.ts (enhancements)",
+    "apps/sidecar/providers.ts (enhancements)"
+  ],
+  "test_plan": [
+    "End-to-end: switch provider and send prompt",
+    "Error path for missing keys"
+  ],
+  "references": [
+    "PLAN.md"
+  ],
+  "dependencies": ["task-10", "task-28", "task-39"],
+  "status": "pending"
+}

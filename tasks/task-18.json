@@ -1,0 +1,31 @@
+{
+  "id": "task-18",
+  "title": "Docker driver (MVP)",
+  "description": "Implement docker driver to run sidecar container with per-session volume, non-root user, and network limits.",
+  "requirements": [
+    "Image: sidecar image name configurable",
+    "Mount: per-session volume at /workspace",
+    "Env: sessionID, regToken, orchestrator URL",
+    "Security: user non-root, cap-drop, optional seccomp profile"
+  ],
+  "plan": [
+    "Implement provision: docker run with mounts and env; wait for /health",
+    "Record container id and endpoint",
+    "Implement destroy: docker rm -f and volume cleanup",
+    "Implement status: inspect container and map to states"
+  ],
+  "expected_outcome": "Sidecar runs in Docker with isolated volume.",
+  "acceptance_criteria": [
+    "Provision succeeds and container user is non-root",
+    "Destroy removes container and detaches volume",
+    "Status reflects running/terminated accurately"
+  ],
+  "deliverables": ["apps/orchestrator/drivers/docker.ts"],
+  "test_plan": [
+    "Manual run in dev environment invoking provision/destroy",
+    "Integration via POST /v1/sessions with target=docker"
+  ],
+  "references": ["PLAN.md sections 6, 13, 15, 16"],
+  "dependencies": ["task-16"],
+  "status": "pending"
+}

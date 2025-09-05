@@ -1,0 +1,35 @@
+{
+  "id": "task-46",
+  "title": "Security: no secrets in terminal env",
+  "description": "Ensure provider keys never reach PTY env or files; audit child process env.",
+  "requirements": [
+    "Spawn PTY with allowlist env",
+    "Scrub known secret-like vars from child env",
+    "Regression tests to assert absence"
+  ],
+  "plan": [
+    "Spawn PTY with minimal env",
+    "Block env vars with secret patterns",
+    "Add regression test"
+  ],
+  "expected_outcome": "PTY environment free of secrets.",
+  "acceptance_criteria": [
+    "No secret key names appear in env dump",
+    "Blocking covers common providers",
+    "Tests fail if secret sneaks in"
+  ],
+  "deliverables": [
+    "apps/sidecar/pty_env.ts",
+    "tests/security/pty_env.test.ts"
+  ],
+  "test_plan": [
+    "Spawn shell that prints env and assert blocking",
+    "Negative control with benign vars"
+  ],
+  "references": [
+    "PLAN.md",
+    "OWASP secrets handling"
+  ],
+  "dependencies": ["task-30"],
+  "status": "pending"
+}

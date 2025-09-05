@@ -1,0 +1,34 @@
+{
+  "id": "task-45",
+  "title": "Usage display and metering",
+  "description": "Surface token/context usage per session in UI with totals.",
+  "requirements": [
+    "Backend aggregates usage per session and model",
+    "Endpoint returns totals and recent deltas",
+    "UI displays metrics with live updates"
+  ],
+  "plan": [
+    "Aggregate usage_events in API",
+    "Expose endpoint for totals",
+    "UI panel for usage and context"
+  ],
+  "expected_outcome": "Users see usage metrics updated live.",
+  "acceptance_criteria": [
+    "Totals match backend aggregation",
+    "Live updates reflect new events",
+    "Empty state handled gracefully"
+  ],
+  "deliverables": [
+    "apps/orchestrator/routes/usage.ts",
+    "apps/frontend/src/components/UsagePanel.tsx"
+  ],
+  "test_plan": [
+    "Aggregation correctness tests",
+    "UI rendering with mock data"
+  ],
+  "references": [
+    "PLAN.md"
+  ],
+  "dependencies": ["task-35", "task-39"],
+  "status": "pending"
+}

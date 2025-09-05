@@ -1,0 +1,28 @@
+{
+  "id": "task-6",
+  "title": "Dev identity: local user seeding (Convex)",
+  "description": "Add a development helper to create a local user identity and simulate auth for local testing.",
+  "requirements": [
+    "Seed user with fixed Id<'users'> and email",
+    "Idempotent seed via upsert",
+    "Development-only identity injection for HTTP requests"
+  ],
+  "plan": [
+    "Create a mutation to upsert a dev user",
+    "Add orchestrator dev middleware to set ctx.user.id",
+    "Document usage in dev notes"
+  ],
+  "expected_outcome": "Local user present; queries scoped by identity work in dev.",
+  "acceptance_criteria": [
+    "Running seed twice does not duplicate",
+    "API requests in dev include that user identity"
+  ],
+  "deliverables": ["convex/dev.seed.ts", "orchestrator dev middleware"],
+  "test_plan": [
+    "Run seed and query users collection",
+    "Create a session with that user identity"
+  ],
+  "references": ["PLAN.md section 5"],
+  "dependencies": ["task-5"],
+  "status": "pending"
+}

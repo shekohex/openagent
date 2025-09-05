@@ -1,0 +1,34 @@
+{
+  "id": "task-32",
+  "title": "Resume flow: volume + artifact fallback",
+  "description": "Implement resume path mounting existing session volume or restoring from session_artifacts backup.",
+  "requirements": [
+    "Check for existing session volume and mount",
+    "If missing, pull latest session JSON from artifact store",
+    "Reconstruct opencode session and validate state",
+    "Emit events for resume outcome"
+  ],
+  "plan": [
+    "Detect existing volume path and mount",
+    "If missing, fetch session JSON from artifact store",
+    "Start sidecar and verify opencode session"
+  ],
+  "expected_outcome": "Sessions reliably resume with preserved state.",
+  "acceptance_criteria": [
+    "Resume uses existing volume when present",
+    "Fallback restore works when volume missing",
+    "Session state matches last persisted snapshot"
+  ],
+  "deliverables": [
+    "apps/orchestrator/services/resume.ts"
+  ],
+  "test_plan": [
+    "Volume present vs missing scenarios",
+    "Artifact restore validation"
+  ],
+  "references": [
+    "PLAN.md"
+  ],
+  "dependencies": ["task-20", "task-25"],
+  "status": "pending"
+}

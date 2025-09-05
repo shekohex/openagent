@@ -1,0 +1,30 @@
+{
+  "id": "task-15",
+  "title": "API: Session stream (SSE/WS)",
+  "description": "Add multiplexed event stream endpoint for sessions supporting SSE and WS with cursors/heartbeats.",
+  "requirements": [
+    "SSE endpoint: GET /v1/sessions/:id/stream with retry and comment heartbeats",
+    "WS endpoint: same path with upgrade",
+    "Auth check user owns session",
+    "Support cursor param to resume from last event id"
+  ],
+  "plan": [
+    "Implement SSE sender with flush and keepalive",
+    "Add WS upgrader and broadcast bus",
+    "Persist minimal cursor metadata for resume"
+  ],
+  "expected_outcome": "Clients can subscribe to live session events.",
+  "acceptance_criteria": [
+    "SSE keeps connection alive for >60s",
+    "WS messages broadcast to multiple clients",
+    "Unauthorized returns 403"
+  ],
+  "deliverables": ["Stream handlers and event bus module"],
+  "test_plan": [
+    "E2E test connecting two clients and receiving events",
+    "Cursor test resuming after reconnect"
+  ],
+  "references": ["PLAN.md section 11"],
+  "dependencies": ["task-11", "task-12"],
+  "status": "pending"
+}

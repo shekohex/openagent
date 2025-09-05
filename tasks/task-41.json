@@ -1,0 +1,34 @@
+{
+  "id": "task-41",
+  "title": "Frontend: terminal tab (xterm.js)",
+  "description": "Embed xterm.js and connect to /v1/sessions/:id/terminal WS.",
+  "requirements": [
+    "xterm.js integration with resize and clipboard",
+    "WS connection using session token",
+    "Reconnect with backoff and terminal state reset"
+  ],
+  "plan": [
+    "Integrate xterm.js component",
+    "Handle input, paste, resize",
+    "Reconnect logic and token usage"
+  ],
+  "expected_outcome": "Interactive terminal available in session view.",
+  "acceptance_criteria": [
+    "Typing shows characters in terminal",
+    "Resize triggers PTY resize",
+    "Reconnect after transient drop"
+  ],
+  "deliverables": [
+    "apps/frontend/src/components/Terminal.tsx"
+  ],
+  "test_plan": [
+    "Smoke test for WS connect",
+    "Resize and paste interactions"
+  ],
+  "references": [
+    "PLAN.md",
+    "xterm.js docs"
+  ],
+  "dependencies": ["task-31"],
+  "status": "pending"
+}

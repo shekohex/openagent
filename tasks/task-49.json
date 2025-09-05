@@ -1,0 +1,33 @@
+{
+  "id": "task-49",
+  "title": "Open items: PTY implementation decision",
+  "description": "Evaluate ttyd vs native Bun PTY; select and document; implement chosen path.",
+  "requirements": [
+    "Prototype ttyd and native PTY approaches",
+    "Evaluate stability, security, performance",
+    "Choose approach and remove dead code paths"
+  ],
+  "plan": [
+    "Prototype both approaches",
+    "Measure stability and resource usage",
+    "Pick one and finalize code paths"
+  ],
+  "expected_outcome": "PTY approach chosen and implemented.",
+  "acceptance_criteria": [
+    "Decision documented in code as constants/config",
+    "Chosen path passes PTY tests",
+    "Unused path removed"
+  ],
+  "deliverables": [
+    "apps/sidecar/pty.ts (finalized)"
+  ],
+  "test_plan": [
+    "Run PTY E2E against chosen approach",
+    "Resource usage smoke test"
+  ],
+  "references": [
+    "PLAN.md"
+  ],
+  "dependencies": ["task-30"],
+  "status": "pending"
+}

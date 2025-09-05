@@ -1,0 +1,37 @@
+{
+  "id": "task-3",
+  "title": "Convex schema: pending_permissions, usage_events, session_artifacts",
+  "description": "Define remaining collections and indexes for permissions, usage, and artifacts per PLAN.",
+  "context": {
+    "collections": [
+      "pending_permissions: _id, sessionId (sessions), permissionId (string), payload (object), createdAt, resolvedAt?, response?",
+      "usage_events: _id, sessionId (sessions), userId (users), type ('tokens'|'runtime'|'storage'), quantity (number), meta (object), createdAt",
+      "session_artifacts: _id, sessionId (sessions), type ('session_json'|'zip'|'git'), urlOrPath (string), size?, checksum?, createdAt"
+    ]
+  },
+  "requirements": [
+    "References via v.id('sessions') and v.id('users')",
+    "Indexes: pending_permissions by sessionId+createdAt, usage_events by sessionId+createdAt",
+    "Enum-like values via v.literal unions",
+    "payload/meta as v.object({}).passthrough() or v.any() per needs"
+  ],
+  "plan": [
+    "Add three collections to convex/schema.ts",
+    "Define composite indexes",
+    "Export types"
+  ],
+  "expected_outcome": "Collections defined with required indexes and references.",
+  "acceptance_criteria": [
+    "Indexes available in queries",
+    "payload/meta stored and retrievable",
+    "Enum unions reject invalid values"
+  ],
+  "deliverables": ["convex/schema.ts updated"],
+  "test_plan": [
+    "Insert permission then resolve and verify resolvedAt",
+    "Insert token usage event and query by sessionId order desc"
+  ],
+  "references": ["PLAN.md sections 4, 11"],
+  "dependencies": ["task-1"],
+  "status": "pending"
+}

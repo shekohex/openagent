@@ -1,0 +1,34 @@
+{
+  "id": "task-44",
+  "title": "Observability: logs timeline",
+  "description": "Mirror opencode /log into orchestrator and display in session timeline.",
+  "requirements": [
+    "Ingest logs events with timestamp and level",
+    "Persist minimal fields for query",
+    "Render logs in UI alongside messages"
+  ],
+  "plan": [
+    "Add log ingestion endpoint",
+    "Persist minimal log events",
+    "Render logs in UI stream"
+  ],
+  "expected_outcome": "Logs appear alongside session messages.",
+  "acceptance_criteria": [
+    "Logs visible in session view timeline",
+    "Filters by level/time work",
+    "Backfill on reconnect shows recent logs"
+  ],
+  "deliverables": [
+    "apps/orchestrator/routes/logs.ts",
+    "apps/frontend/src/components/LogsPanel.tsx"
+  ],
+  "test_plan": [
+    "Ingestion and persistence tests",
+    "UI render test with sample data"
+  ],
+  "references": [
+    "PLAN.md"
+  ],
+  "dependencies": ["task-26", "task-39"],
+  "status": "pending"
+}

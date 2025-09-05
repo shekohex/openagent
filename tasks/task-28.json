@@ -1,0 +1,35 @@
+{
+  "id": "task-28",
+  "title": "Orchestrator -> sidecar proxy routes",
+  "description": "Implement orchestrator routes that call sidecar control API for sessions.",
+  "requirements": [
+    "Resolve sidecar endpoint by session ID and instance",
+    "Forward request body and headers; attach auth",
+    "Stream results back to client with correct content-type",
+    "Timeouts, retries, and error mapping"
+  ],
+  "plan": [
+    "Wire /v1/sessions/:id/prompt, /command, /shell",
+    "Forward payload, stream results to client",
+    "Handle timeouts and retries"
+  ],
+  "expected_outcome": "Public API proxies to sidecar and streams back results.",
+  "acceptance_criteria": [
+    "Proxy handles happy path and streams data",
+    "Unavailable sidecar yields 503 with retry-after",
+    "Errors mapped to 4xx/5xx appropriately"
+  ],
+  "deliverables": [
+    "apps/orchestrator/routes/sessions_proxy.ts"
+  ],
+  "test_plan": [
+    "Integration with mocked sidecar",
+    "Timeout and retry tests"
+  ],
+  "references": [
+    "PLAN.md",
+    "Fetch streaming in Bun"
+  ],
+  "dependencies": ["task-14", "task-27"],
+  "status": "pending"
+}

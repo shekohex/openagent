@@ -1,0 +1,31 @@
+{
+  "id": "task-20",
+  "title": "Orchestrator: create session lifecycle",
+  "description": "Wire POST /v1/sessions to provision driver, create instance doc in Convex, and await sidecar registration, then mark active.",
+  "requirements": [
+    "Insert sessions doc with status=creating",
+    "Provision target (local/docker) and create instances doc",
+    "Generate registration token and pass to driver",
+    "On /internal/register success: set sessions.status=active and currentInstanceId"
+  ],
+  "plan": [
+    "Implement orchestration flow with timeout and retries",
+    "Persist instance endpoint and json path placeholder",
+    "Emit events: session.status and server.connected",
+    "Handle failure path -> status=error"
+  ],
+  "expected_outcome": "Sessions move from creating to active with instance attached.",
+  "acceptance_criteria": [
+    "Successful create transitions to active within timeout",
+    "Failure transitions to error with message",
+    "Events are emitted to stream"
+  ],
+  "deliverables": ["/v1/sessions POST handler + orchestrator flow"],
+  "test_plan": [
+    "Integration with local driver mocked sidecar register",
+    "Timeout test when sidecar never registers"
+  ],
+  "references": ["PLAN.md sections 6, 8, 11"],
+  "dependencies": ["task-14", "task-16", "task-17"],
+  "status": "pending"
+}

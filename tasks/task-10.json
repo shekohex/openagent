@@ -1,0 +1,32 @@
+{
+  "id": "task-10",
+  "title": "API: provider keys endpoints",
+  "description": "Expose BYOK endpoints: PUT /v1/keys/:provider, GET /v1/keys, DELETE /v1/keys/:provider. Enforce ownership and never return plaintext.",
+  "requirements": [
+    "PUT /v1/keys/:provider { key | managed }: upsert or mark as managed (no plaintext storage)",
+    "GET /v1/keys: list providers configured for user with createdAt, lastUsedAt",
+    "DELETE /v1/keys/:provider: remove key for user",
+    "Validate provider against known list"
+  ],
+  "plan": [
+    "Define zod schemas for inputs/outputs",
+    "Authorize via user context and call Convex functions",
+    "Map errors to 4xx/5xx with safe messages",
+    "Add rate limit to PUT/DELETE"
+  ],
+  "expected_outcome": "Provider key APIs functional and secure.",
+  "acceptance_criteria": [
+    "PUT stores encrypted fields; GET returns metadata only",
+    "Duplicate PUT updates existing entry",
+    "DELETE removes entry; subsequent GET not include it",
+    "Invalid provider yields 400"
+  ],
+  "deliverables": ["Route handlers and tests (API level)"] ,
+  "test_plan": [
+    "bun test: API integration using in-memory server",
+    "Negative tests for invalid provider and missing key"
+  ],
+  "references": ["PLAN.md section 10"],
+  "dependencies": ["task-9"],
+  "status": "pending"
+}

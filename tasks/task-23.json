@@ -1,0 +1,36 @@
+{
+  "id": "task-23",
+  "title": "Sidecar: start opencode server via SDK",
+  "description": "Use createOpencodeServer to start opencode and set config.",
+  "requirements": [
+    "Start opencode server via SDK with configurable host/port",
+    "Bind to session workspace volume path",
+    "Expose resolved server URL and health check",
+    "Graceful shutdown hook"
+  ],
+  "plan": [
+    "Start server with hostname/port",
+    "Point to session volume",
+    "Expose server URL in sidecar state"
+  ],
+  "expected_outcome": "Opencode server running inside sidecar.",
+  "acceptance_criteria": [
+    "Server starts and reports healthy URL",
+    "Workspace path is used and writable",
+    "Process is terminated cleanly on stop"
+  ],
+  "deliverables": [
+    "apps/sidecar/opencode.ts",
+    "apps/sidecar/state.ts"
+  ],
+  "test_plan": [
+    "Mock SDK and verify start/stop lifecycle",
+    "Health probe returns ready within timeout"
+  ],
+  "references": [
+    "PLAN.md",
+    "opencode SDK"
+  ],
+  "dependencies": ["task-21"],
+  "status": "pending"
+}

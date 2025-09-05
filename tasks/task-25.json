@@ -1,0 +1,35 @@
+{
+  "id": "task-25",
+  "title": "Sidecar: ensure/create opencode session",
+  "description": "Create or verify opencode session whose ID equals orchestrator session ID; ensure JSON persistence path.",
+  "requirements": [
+    "Derive opencode session ID from orchestrator session ID",
+    "If missing, create with given title and metadata",
+    "Ensure session JSON persisted under standard path",
+    "Expose path for orchestrator to store in instances.session_json_path"
+  ],
+  "plan": [
+    "Check if session exists via SDK",
+    "Create if missing with provided title",
+    "Record session JSON path"
+  ],
+  "expected_outcome": "Opencode session active and persisted to volume.",
+  "acceptance_criteria": [
+    "Session exists after operation and is addressable by ID",
+    "Session JSON file is present at agreed path",
+    "Path surfaced back to orchestrator"
+  ],
+  "deliverables": [
+    "apps/sidecar/session.ts"
+  ],
+  "test_plan": [
+    "Integration with SDK: create then verify",
+    "Path verification on volume"
+  ],
+  "references": [
+    "PLAN.md",
+    "opencode SDK"
+  ],
+  "dependencies": ["task-23", "task-24"],
+  "status": "pending"
+}

@@ -1,0 +1,28 @@
+{
+  "id": "task-13",
+  "title": "API: GET /v1/config/providers",
+  "description": "Return providers and default models via opencode SDK or static cache for UI selector.",
+  "requirements": [
+    "Shape: { providers: Provider[], default: Record<provider,string> }",
+    "Cache for 5 minutes in-memory",
+    "Fallback to static list if opencode unreachable"
+  ],
+  "plan": [
+    "Implement handler that queries opencode SDK client",
+    "Add simple LRU/in-memory cache",
+    "Return normalized schema"
+  ],
+  "expected_outcome": "Endpoint returns providers and defaults for UI.",
+  "acceptance_criteria": [
+    "Successful response within <200ms when cached",
+    "When opencode down, returns static defaults with 200"
+  ],
+  "deliverables": ["/v1/config/providers route"],
+  "test_plan": [
+    "Mock SDK client to return providers",
+    "Simulate failure path and ensure fallback"
+  ],
+  "references": ["PLAN.md sections 8, 21", "docs/opencode-sdk.md"],
+  "dependencies": ["task-11"],
+  "status": "pending"
+}

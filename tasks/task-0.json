@@ -1,0 +1,59 @@
+{
+  "id": "task-0",
+  "title": "Project scaffold (orchestrator + sidecar, Bun)",
+  "description": "Initialize repo structure for orchestrator API and per-session sidecar servers using Bun. Establish workspace layout, TypeScript config, scripts, and env conventions.",
+  "context": {
+    "goals": [
+      "Two Bun services: orchestrator (public API) and sidecar (per-session)",
+      "Shared utilities package for types and helpers",
+      "Hot-reload dev experience with bun --hot",
+      "Consistent env variable naming and defaults"
+    ],
+    "non_goals": [
+      "Implementing any business logic",
+      "DB setup or migrations",
+      "Containerization or drivers"
+    ]
+  },
+  "requirements": [
+    "Bun 1.1+ with bun-types",
+    "TypeScript strict mode enabled",
+    ".env.example with documented variables; Bun auto-loads .env",
+    "Directory layout: /apps/orchestrator, /apps/sidecar, /packages/shared"
+  ],
+  "plan": [
+    "Create directories: apps/orchestrator, apps/sidecar, packages/shared",
+    "Add package.json files with type: module and scripts: dev, start, test",
+    "Add tsconfig.json per app and a base tsconfig in root extending bun-types",
+    "Implement minimal Bun.serve in each app with GET /health and /version",
+    "Export shared types in packages/shared (e.g., Driver types, Event types)",
+    "Add .env.example and describe required vars (PORTs, OPENAGENT_MASTER_KEY placeholder)",
+    "Add preconfigured eslint/prettier (optional) and bun test boilerplate"
+  ],
+  "expected_outcome": "Two Bun servers scaffolded (orchestrator, sidecar) with dev scripts; builds pass.",
+  "acceptance_criteria": [
+    "bun --hot apps/orchestrator/index.ts serves /health: {status: 'ok'}",
+    "bun --hot apps/sidecar/index.ts serves /health: {status: 'ok'}",
+    "Shared package imported by both apps",
+    "All tsconfigs compile with no errors (bun build --compile check or tsc --noEmit if configured)",
+    ".env.example lists all needed vars with sensible defaults"
+  ],
+  "deliverables": [
+    "apps/orchestrator/index.ts",
+    "apps/sidecar/index.ts",
+    "packages/shared/src/index.ts",
+    ".env.example",
+    "root tsconfig.base.json and app tsconfigs"
+  ],
+  "test_plan": [
+    "Run bun test with a trivial test to validate setup",
+    "Manual curl to /health on both servers",
+    "Import a type from packages/shared in both apps and compile"
+  ],
+  "references": [
+    "PLAN.md sections 2, 9",
+    "Bun.serve API"
+  ],
+  "dependencies": [],
+  "status": "pending"
+}

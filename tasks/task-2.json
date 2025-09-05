@@ -1,0 +1,35 @@
+{
+  "id": "task-2",
+  "title": "Convex schema: provider_keys (envelope fields)",
+  "description": "Define provider_keys collection with envelope encryption metadata and constraints for BYOK.",
+  "context": {
+    "collection": "provider_keys: _id, userId (users), provider (string), encryptedKey (bytes), encryptedDataKey (bytes), keyVersion (int), createdAt, lastUsedAt?",
+    "notes": ["unique(userId, provider)", "Never return plaintext via API"]
+  },
+  "requirements": [
+    "Store ciphertexts as bytes or base64 string per Convex type support",
+    "keyVersion default 1",
+    "Reference to users via v.id('users')",
+    "Unique composite (userId, provider) enforced in mutation logic",
+    "Index by userId for listing"
+  ],
+  "plan": [
+    "Add provider_keys table to convex/schema.ts",
+    "Add index provider_keys.by_user and ensure uniqueness in mutation",
+    "Export types"
+  ],
+  "expected_outcome": "provider_keys defined with index and uniqueness enforcement.",
+  "acceptance_criteria": [
+    "Upsert enforces one row per (userId, provider)",
+    "All fields present with correct types",
+    "Nullable lastUsedAt"
+  ],
+  "deliverables": ["convex/schema.ts updated"],
+  "test_plan": [
+    "Write mutation unit test that inserts duplicate and verifies replacement",
+    "List by userId shows providers"
+  ],
+  "references": ["PLAN.md section 4", "PLAN.md section 10"],
+  "dependencies": ["task-1"],
+  "status": "pending"
+}

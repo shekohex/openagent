@@ -1,0 +1,36 @@
+{
+  "id": "task-36",
+  "title": "Security: tokens and WS TTLs",
+  "description": "Implement one-time registration tokens and per-session WS tokens with rotation and TTL.",
+  "requirements": [
+    "Opaque, random tokens with configurable TTL",
+    "Single-use registration tokens",
+    "Per-session WS tokens rotate on resume",
+    "Store hashes only; revoke on demand"
+  ],
+  "plan": [
+    "Generate short-lived tokens",
+    "Rotate on resume",
+    "Validate on every WS connect"
+  ],
+  "expected_outcome": "Short-lived tokens protect registration and terminal.",
+  "acceptance_criteria": [
+    "Expired tokens are rejected",
+    "Rotation invalidates previous tokens",
+    "Hash storage prevents leakage"
+  ],
+  "deliverables": [
+    "packages/shared/tokens.ts",
+    "apps/orchestrator/services/tokens.ts"
+  ],
+  "test_plan": [
+    "TTL expiration tests",
+    "Rotation and revocation tests"
+  ],
+  "references": [
+    "PLAN.md",
+    "OWASP token best practices"
+  ],
+  "dependencies": ["task-20", "task-31"],
+  "status": "pending"
+}

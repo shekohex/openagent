@@ -1,0 +1,35 @@
+{
+  "id": "task-38",
+  "title": "Frontend: auth + routes skeleton",
+  "description": "Set up routes /login, /onboarding/keys, /sessions, /sessions/:id using TanStack Start.",
+  "requirements": [
+    "Auth state and guard around protected routes",
+    "Pages: /login, /onboarding/keys, /sessions, /sessions/:id",
+    "Shared layout and nav",
+    "Bun bundler-compatible setup"
+  ],
+  "plan": [
+    "Create basic pages and loaders",
+    "Wire auth guard",
+    "Style with shadcn/ui baseline"
+  ],
+  "expected_outcome": "Frontend navigates core routes with auth state.",
+  "acceptance_criteria": [
+    "/sessions redirects to /login when unauthenticated",
+    "Successful login shows sessions list",
+    "Deep-link to /sessions/:id renders"
+  ],
+  "deliverables": [
+    "apps/frontend/src/routes/*",
+    "apps/frontend/src/auth.ts"
+  ],
+  "test_plan": [
+    "Routing tests",
+    "Auth guard unit tests"
+  ],
+  "references": [
+    "PLAN.md"
+  ],
+  "dependencies": ["task-0"],
+  "status": "pending"
+}

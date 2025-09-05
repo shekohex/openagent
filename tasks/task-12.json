@@ -1,0 +1,29 @@
+{
+  "id": "task-12",
+  "title": "Auth middleware and user context",
+  "description": "Implement auth extracting identity and attach to request context; integrate with Convex functions for access checks.",
+  "requirements": [
+    "Support dev mode header: X-Dev-User-ID",
+    "Production: stub for session cookie/JWT (to be integrated later)",
+    "Reject requests without user on protected routes",
+    "Expose ctx.user.id to handlers"
+  ],
+  "plan": [
+    "Create middleware that resolves user from headers/session",
+    "Attach identity to ctx and pass to Convex client",
+    "Provide helper to enforceProtected(ctx)"
+  ],
+  "expected_outcome": "Requests carry identity; protected routes enforced.",
+  "acceptance_criteria": [
+    "Protected route without user returns 401",
+    "With X-Dev-User-ID, route proceeds and sees ctx.user.id"
+  ],
+  "deliverables": ["apps/orchestrator/middleware/auth.ts"],
+  "test_plan": [
+    "Integration tests hitting a protected dummy route",
+    "Unit tests for header parsing"
+  ],
+  "references": ["PLAN.md section 5"],
+  "dependencies": ["task-11"],
+  "status": "pending"
+}

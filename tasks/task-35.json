@@ -1,0 +1,32 @@
+{
+  "id": "task-35",
+  "title": "Usage events ingestion",
+  "description": "Collect token/context usage from events and persist to usage_events in Convex.",
+  "requirements": [
+    "Define mapping from opencode events to usage_events schema",
+    "Persist docs with session/user attribution",
+    "Provide aggregation by session and time window"
+  ],
+  "plan": [
+    "Map opencode token/context to usage docs",
+    "Persist on event receive",
+    "Expose aggregated totals per session"
+  ],
+  "expected_outcome": "Usage tracked and queryable for UI display.",
+  "acceptance_criteria": [
+    "Events produce correct usage docs",
+    "Aggregation endpoint returns expected totals",
+    "Visibility limited to owner"
+  ],
+  "deliverables": [
+    "convex/usage.ts",
+    "apps/orchestrator/routes/usage.ts"
+  ],
+  "test_plan": [
+    "Unit: mapping correctness",
+    "Integration: totals for a session"
+  ],
+  "references": ["PLAN.md"],
+  "dependencies": ["task-26", "task-3"],
+  "status": "pending"
+}

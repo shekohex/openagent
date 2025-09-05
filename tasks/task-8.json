@@ -1,0 +1,30 @@
+{
+  "id": "task-8",
+  "title": "Envelope encryption service + versioning",
+  "description": "Service to generate data key (DK), encrypt provider key with DK, and wrap DK with master key; support key_version and zeroization.",
+  "requirements": [
+    "seal(plaintext, aad?) -> { encrypted_key, encrypted_data_key, key_version, nonce(s), tag(s) }",
+    "unseal(encrypted_key, encrypted_data_key, key_version, aad?) -> plaintext",
+    "Zeroize DK and plaintext buffers after use",
+    "Deterministic interface, no I/O"
+  ],
+  "plan": [
+    "Implement seal/unseal using AES-GCM utils",
+    "Define versioning strategy (v1: AES-256-GCM for both layers)",
+    "Expose pure functions in packages/shared/envelope.ts",
+    "Add unit tests for seal/unseal and misuse scenarios"
+  ],
+  "expected_outcome": "Envelope service that returns ciphertexts and handles versioning.",
+  "acceptance_criteria": [
+    "Roundtrip works with correct AAD and fails with wrong AAD",
+    "Buffers are zeroized after operation (observable in tests where possible)"
+  ],
+  "deliverables": ["packages/shared/crypto/envelope.ts", "tests/crypto/envelope.test.ts"],
+  "test_plan": [
+    "bun test with various provider key sizes",
+    "Property tests for random inputs"
+  ],
+  "references": ["PLAN.md section 10"],
+  "dependencies": ["task-7"],
+  "status": "pending"
+}

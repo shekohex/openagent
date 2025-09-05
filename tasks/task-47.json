@@ -1,0 +1,34 @@
+{
+  "id": "task-47",
+  "title": "Config: opencode session JSON path contract",
+  "description": "Define and implement standard path for opencode session JSON in sidecar volume.",
+  "requirements": [
+    "Directory layout under /workspace/opencode/sessions/{id}.json",
+    "Discovery logic validates file presence and schema",
+    "Persist path to instances.session_json_path"
+  ],
+  "plan": [
+    "Agree on directory layout under /workspace/opencode/sessions",
+    "Implement discovery and verification",
+    "Persist path in instances.session_json_path"
+  ],
+  "expected_outcome": "Consistent session JSON path contract implemented.",
+  "acceptance_criteria": [
+    "Path exists after session creation",
+    "Resume uses this path successfully",
+    "DB column stores absolute path"
+  ],
+  "deliverables": [
+    "apps/sidecar/session_paths.ts",
+    "apps/orchestrator/services/instances.ts"
+  ],
+  "test_plan": [
+    "Path generation and validation tests",
+    "DB update test"
+  ],
+  "references": [
+    "PLAN.md"
+  ],
+  "dependencies": ["task-25", "task-14"],
+  "status": "pending"
+}

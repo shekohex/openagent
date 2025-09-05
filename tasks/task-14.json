@@ -1,0 +1,30 @@
+{
+  "id": "task-14",
+  "title": "API: Sessions CRUD (list/get/create/delete)",
+  "description": "Implement public session routes backed by Convex functions with status transitions and ownership enforcement.",
+  "requirements": [
+    "POST /v1/sessions { title?, target? } -> { id, status } with status=creating",
+    "GET /v1/sessions returns user's sessions ordered by createdAt desc",
+    "GET /v1/sessions/:id returns one if owner",
+    "DELETE /v1/sessions/:id marks stop and triggers teardown async"
+  ],
+  "plan": [
+    "Define zod schemas and call Convex mutations/queries",
+    "Implement list/get scoped by identity",
+    "On delete, enqueue destroy via driver if instance exists"
+  ],
+  "expected_outcome": "Sessions routes functional and persisted.",
+  "acceptance_criteria": [
+    "Non-owner cannot access others' sessions (403)",
+    "Create returns id and status=creating",
+    "Delete returns 202 and triggers teardown"
+  ],
+  "deliverables": ["Route handlers + minimal queue/async stub"],
+  "test_plan": [
+    "Integration tests for list/get/create/delete with auth",
+    "Simulate missing session id -> 404"
+  ],
+  "references": ["PLAN.md section 8"],
+  "dependencies": ["task-11", "task-4", "task-5", "task-12"],
+  "status": "pending"
+}
