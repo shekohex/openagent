@@ -1,7 +1,22 @@
 import { CryptoError } from "./crypto";
 
 const MEMORY_CLEAR_ITERATIONS = 3;
-const SECURE_RANDOM_OVERWRITE_SIZE = 32;
+const CRYPTO_OPERATIONS_MAX_ATTEMPTS = 10;
+const CRYPTO_OPERATIONS_WINDOW_MS = 60_000; // 1 minute
+const KEY_PROVISIONING_MAX_ATTEMPTS = 3;
+const KEY_PROVISIONING_WINDOW_MS = 300_000; // 5 minutes
+const MAX_BUFFER_SIZE = 10_485_760; // 10MB limit
+const MIN_KEY_STRENGTH_LENGTH = 32; // Minimum secure key length
+
+// Regex patterns for key strength validation
+const SAME_CHARACTER_PATTERN = /^(.)\1+$/; // All same character
+const SEQUENTIAL_PATTERN =
+  /^(012|123|234|345|456|567|678|789|890|abc|bcd|cde|def)+/i; // Sequential patterns
+const COMMON_WORDS_PATTERN = /^(password|secret|key|token)/i; // Common words
+
+// Default rate limiting values
+const DEFAULT_RATE_LIMIT_MINUTES = 15;
+const MILLISECONDS_PER_SECOND_RATE_LIMIT = 1000;
 
 export function secureMemoryWipe(array: Uint8Array): void {
   if (!array || array.length === 0) {
@@ -10,17 +25,17 @@ export function secureMemoryWipe(array: Uint8Array): void {
 
   for (let iteration = 0; iteration < MEMORY_CLEAR_ITERATIONS; iteration++) {
     array.fill(0);
-    
+
     if (iteration < MEMORY_CLEAR_ITERATIONS - 1) {
       crypto.getRandomValues(array);
     }
   }
-  
+
   array.fill(0);
 }
 
 export function secureStringWipe(str: string): void {
-  if (typeof str !== 'string' || str.length === 0) {
+  if (typeof str !== "string" || str.length === 0) {
     return;
   }
 
@@ -34,11 +49,11 @@ export function secureStringWipe(str: string): void {
 }
 
 export class SecureBuffer {
-  private buffer: Uint8Array;
+  private readonly buffer: Uint8Array;
   private isWiped = false;
 
   constructor(size: number) {
-    if (size <= 0 || size > 10485760) { // 10MB limit
+    if (size <= 0 || size > MAX_BUFFER_SIZE) {
       throw new CryptoError(`Invalid buffer size: ${size}`);
     }
     this.buffer = new Uint8Array(size);
@@ -85,7 +100,9 @@ export class SecureBuffer {
     if (this.isWiped) {
       throw new CryptoError("Buffer has been wiped");
     }
-    const binaryString = Array.from(this.buffer, byte => String.fromCharCode(byte)).join('');
+    const binaryString = Array.from(this.buffer, (byte) =>
+      String.fromCharCode(byte)
+    ).join("");
     return btoa(binaryString);
   }
 
@@ -157,7 +174,7 @@ export function createSecureOperation(): SecureOperation {
   return new SecureOperation();
 }
 
-export interface AuditLogEntry {
+export type AuditLogEntry = {
   timestamp: number;
   operation: string;
   userId?: string;
@@ -166,103 +183,123 @@ export interface AuditLogEntry {
   success: boolean;
   error?: string;
   metadata?: Record<string, unknown>;
+};
+
+// Security audit logging state
+let auditLogs: AuditLogEntry[] = [];
+const MAX_AUDIT_LOGS = 1000;
+
+export function logSecurityEvent(
+  entry: Omit<AuditLogEntry, "timestamp">
+): void {
+  const logEntry: AuditLogEntry = {
+    timestamp: Date.now(),
+    ...entry,
+  };
+
+  auditLogs.push(logEntry);
+
+  if (auditLogs.length > MAX_AUDIT_LOGS) {
+    auditLogs = auditLogs.slice(-MAX_AUDIT_LOGS);
+  }
+
+  // In production, this would be sent to a logging service
 }
 
-export class SecurityAuditLogger {
-  private static logs: AuditLogEntry[] = [];
-  private static readonly MAX_LOGS = 1000;
+export function getSecurityAuditLogs(limit = 100): AuditLogEntry[] {
+  return auditLogs.slice(-limit);
+}
 
-  static log(entry: Omit<AuditLogEntry, 'timestamp'>): void {
-    const logEntry: AuditLogEntry = {
-      timestamp: Date.now(),
-      ...entry,
-    };
-
-    this.logs.push(logEntry);
-    
-    if (this.logs.length > this.MAX_LOGS) {
-      this.logs = this.logs.slice(-this.MAX_LOGS);
-    }
-
-    // In production, this would be sent to a logging service
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[SECURITY AUDIT]', logEntry);
-    }
-  }
-
-  static getLogs(limit = 100): AuditLogEntry[] {
-    return this.logs.slice(-limit);
-  }
-
-  static clearLogs(): void {
-    this.logs = [];
-  }
+export function clearSecurityAuditLogs(): void {
+  auditLogs = [];
 }
 
 export function validateKeyStrength(key: string): boolean {
-  if (!key || typeof key !== 'string') {
+  if (!key || typeof key !== "string") {
     return false;
   }
 
   // Basic key strength validation
-  if (key.length < 32) {
+  if (key.length < MIN_KEY_STRENGTH_LENGTH) {
     return false;
   }
 
   // Check for common weak patterns
   const weakPatterns = [
-    /^(.)\1+$/, // All same character
-    /^(012|123|234|345|456|567|678|789|890|abc|bcd|cde|def)+/i, // Sequential patterns
-    /^(password|secret|key|token)/i, // Common words
+    SAME_CHARACTER_PATTERN,
+    SEQUENTIAL_PATTERN,
+    COMMON_WORDS_PATTERN,
   ];
 
-  return !weakPatterns.some(pattern => pattern.test(key));
+  return !weakPatterns.some((pattern) => pattern.test(key));
 }
 
 export function generateSecureId(length = 32): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
   const bytes = crypto.getRandomValues(new Uint8Array(length));
-  let result = '';
-  
+  let result = "";
+
   for (let i = 0; i < length; i++) {
     result += chars[bytes[i] % chars.length];
   }
-  
+
   secureMemoryWipe(bytes);
   return result;
 }
 
 export class RateLimiter {
-  private attempts = new Map<string, { count: number; resetTime: number }>();
+  private readonly attempts = new Map<
+    string,
+    { count: number; resetTime: number }
+  >();
   private readonly maxAttempts: number;
   private readonly windowMs: number;
 
-  constructor(maxAttempts = 5, windowMs = 15 * 60 * 1000) { // 5 attempts per 15 minutes
+  constructor(
+    maxAttempts = 5,
+    windowMs = DEFAULT_RATE_LIMIT_MINUTES *
+      60 *
+      MILLISECONDS_PER_SECOND_RATE_LIMIT
+  ) {
+    // 5 attempts per 15 minutes
     this.maxAttempts = maxAttempts;
     this.windowMs = windowMs;
   }
 
-  checkLimit(identifier: string): { allowed: boolean; remainingAttempts: number; resetTime: number } {
+  checkLimit(identifier: string): {
+    allowed: boolean;
+    remainingAttempts: number;
+    resetTime: number;
+  } {
     const now = Date.now();
     const record = this.attempts.get(identifier);
 
     if (!record || now > record.resetTime) {
       const resetTime = now + this.windowMs;
       this.attempts.set(identifier, { count: 1, resetTime });
-      return { allowed: true, remainingAttempts: this.maxAttempts - 1, resetTime };
+      return {
+        allowed: true,
+        remainingAttempts: this.maxAttempts - 1,
+        resetTime,
+      };
     }
 
     if (record.count >= this.maxAttempts) {
-      return { allowed: false, remainingAttempts: 0, resetTime: record.resetTime };
+      return {
+        allowed: false,
+        remainingAttempts: 0,
+        resetTime: record.resetTime,
+      };
     }
 
     record.count++;
     this.attempts.set(identifier, record);
-    
-    return { 
-      allowed: true, 
-      remainingAttempts: this.maxAttempts - record.count, 
-      resetTime: record.resetTime 
+
+    return {
+      allowed: true,
+      remainingAttempts: this.maxAttempts - record.count,
+      resetTime: record.resetTime,
     };
   }
 
@@ -271,5 +308,11 @@ export class RateLimiter {
   }
 }
 
-export const cryptoOperationsRateLimit = new RateLimiter(10, 60000); // 10 operations per minute
-export const keyProvisioningRateLimit = new RateLimiter(3, 300000); // 3 provisions per 5 minutes
+export const cryptoOperationsRateLimit = new RateLimiter(
+  CRYPTO_OPERATIONS_MAX_ATTEMPTS,
+  CRYPTO_OPERATIONS_WINDOW_MS
+);
+export const keyProvisioningRateLimit = new RateLimiter(
+  KEY_PROVISIONING_MAX_ATTEMPTS,
+  KEY_PROVISIONING_WINDOW_MS
+);
