@@ -55,7 +55,7 @@ jobs:
           assignee_trigger: "claude-bot"
 
           # Allow Claude to run specific commands
-          allowed_tools: "Bash(bun install),Bash(bun run build),Bash(bun run test:*),Bash(bun run lint:*),Bash(bun run typecheck),Bash(bunx ultracite check),Bash(bunx ultracite fix)"
+          allowed_tools: "Bash(bun install),Bash(bun run build),Bash(bun run test:*),Bash(bun run lint:*),Bash(bun run typecheck),Bash(bunx ultracite check),Bash(bunx ultracite fix),Bash(gh *)"
 
           # Custom instructions for Claude to customize its behavior for your project
           custom_instructions: |
