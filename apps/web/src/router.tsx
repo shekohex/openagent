@@ -11,7 +11,7 @@ import { routeTree } from "./routeTree.gen";
 export function createRouter() {
   const CONVEX_URL = import.meta.env.VITE_CONVEX_URL;
   if (!CONVEX_URL) {
-    console.error("missing envar VITE_CONVEX_URL");
+    throw new Error("Missing environment variable: VITE_CONVEX_URL");
   }
   const convex = new ConvexReactClient(CONVEX_URL, {
     unsavedChangesWarning: false,
