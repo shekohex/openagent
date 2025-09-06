@@ -1,5 +1,3 @@
-import Loader from "@/components/loader";
-import { Toaster } from "@/components/ui/sonner";
 import type { ConvexQueryClient } from "@convex-dev/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -16,6 +14,8 @@ import {
   type ConvexReactClient,
   Unauthenticated,
 } from "convex/react";
+import Loader from "@/components/loader";
+import { Toaster } from "@/components/ui/sonner";
 import Header from "../components/header";
 import appCss from "../index.css?url";
 
