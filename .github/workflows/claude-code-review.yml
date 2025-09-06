@@ -103,8 +103,3 @@ jobs:
 
           # Add specific tools for running tests or linting
           allowed_tools: "Bash(bun run test),Bash(bun run lint),Bash(bun run typecheck),Bash(bunx ultracite check),Bash(bun run build)"
-
-          # Optional: Skip review for certain conditions
-          if: |
-            !contains(github.event.pull_request.title, '[skip-review]') &&
-            !contains(github.event.pull_request.title, '[WIP]')
