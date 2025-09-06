@@ -13,7 +13,8 @@
     "dev:native": "turbo -F native dev",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F @openagent/backend dev",
-    "dev:setup": "turbo -F @openagent/backend dev:setup"
+    "dev:setup": "turbo -F @openagent/backend dev:setup",
+    "convex:codegen": "turbo -F @openagent/backend codegen"
   },
   "dependencies": {},
   "devDependencies": {
