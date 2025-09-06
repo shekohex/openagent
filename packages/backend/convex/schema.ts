@@ -103,12 +103,8 @@ const schema = defineSchema({
 export default schema;
 
 export type SessionStatus =
-  | "creating"
-  | "active"
-  | "idle"
-  | "stopped"
-  | "error";
-export type InstanceDriver = "docker" | "k8s" | "local";
-export type InstanceState = "provisioning" | "running" | "terminated" | "error";
-export type UsageEventType = "tokens" | "runtime" | "storage";
-export type ArtifactType = "session_json" | "zip" | "git";
+  typeof schema.tables.sessions.validator.fields.status.type;
+export type InstanceDriver = typeof schema.tables.instances.validator.fields.driver.type;
+export type InstanceState = typeof schema.tables.instances.validator.fields.state.type;
+export type UsageEventType = typeof schema.tables.usageEvents.validator.fields.type.type;
+export type ArtifactType = typeof schema.tables.sessionArtifacts.validator.fields.type.type;
