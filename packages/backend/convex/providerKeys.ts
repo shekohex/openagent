@@ -422,11 +422,12 @@ export const getRotationAuditLogs = query({
   handler: async (ctx, args) => {
     const limit = args.limit || DEFAULT_AUDIT_LOG_LIMIT;
 
-    if (args.provider) {
+    if (args.provider !== undefined) {
+      const provider = args.provider;
       return await ctx.db
         .query("keyRotationAudit")
         .withIndex("by_provider", (q) =>
-          q.eq("userId", args.userId).eq("provider", args.provider)
+          q.eq("userId", args.userId).eq("provider", provider)
         )
         .order("desc")
         .take(limit);
