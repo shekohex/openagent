@@ -1,37 +1,36 @@
 import { v } from "convex/values";
-import { action } from "../_generated/server";
 import { api } from "../_generated/api";
+import type { Id } from "../_generated/dataModel";
+import { action } from "../_generated/server";
 import { CryptoError } from "../lib/crypto";
-import { 
-  KeyExchange, 
-  SecureProviderKeyDelivery,
-  type SealedPayload 
-} from "../lib/keyExchange";
 import {
-  SecurityAuditLogger,
-  keyProvisioningRateLimit,
-  createSecureOperation,
-  SecureBuffer
-} from "../lib/security";
+  KeyExchange,
+  type SealedPayload,
+  SecureProviderKeyDelivery,
+} from "../lib/keyExchange";
+import { keyProvisioningRateLimit, logSecurityEvent } from "../lib/security";
 
-export interface SidecarRegistration {
+const MILLISECONDS_PER_SECOND = 1000;
+const MAX_TOKEN_AGE_MS = 24 * 60 * 60 * MILLISECONDS_PER_SECOND; // 24 hours
+
+export type SidecarRegistration = {
   sessionId: string;
   publicKey: string;
   keyId: string;
   timestamp: number;
-}
+};
 
-export interface ProvisioningResult {
+export type ProvisioningResult = {
   success: boolean;
   sealedKeys?: SealedPayload;
   sidecarToken?: string;
   error?: string;
   providersCount?: number;
-}
+};
 
 export const registerSidecar = action({
   args: {
-    sessionId: v.string(),
+    sessionId: v.id("sessions"),
     registrationToken: v.string(),
     sidecarPublicKey: v.string(),
     sidecarKeyId: v.string(),
@@ -39,11 +38,11 @@ export const registerSidecar = action({
   handler: async (ctx, args): Promise<ProvisioningResult> => {
     const rateLimit = keyProvisioningRateLimit.checkLimit(args.sessionId);
     if (!rateLimit.allowed) {
-      SecurityAuditLogger.log({
-        operation: 'register_sidecar',
+      logSecurityEvent({
+        operation: "register_sidecar",
         sessionId: args.sessionId,
         success: false,
-        error: 'Rate limit exceeded',
+        error: "Rate limit exceeded",
       });
       return {
         success: false,
@@ -51,15 +50,13 @@ export const registerSidecar = action({
       };
     }
 
-    const operation = createSecureOperation();
-    
     try {
       if (!KeyExchange.validatePublicKey(args.sidecarPublicKey)) {
-        SecurityAuditLogger.log({
-          operation: 'register_sidecar',
+        logSecurityEvent({
+          operation: "register_sidecar",
           sessionId: args.sessionId,
           success: false,
-          error: 'Invalid sidecar public key format',
+          error: "Invalid sidecar public key format",
         });
         return {
           success: false,
@@ -68,11 +65,11 @@ export const registerSidecar = action({
       }
 
       if (!KeyExchange.validateKeyId(args.sidecarKeyId)) {
-        SecurityAuditLogger.log({
-          operation: 'register_sidecar',
+        logSecurityEvent({
+          operation: "register_sidecar",
           sessionId: args.sessionId,
           success: false,
-          error: 'Invalid sidecar key ID format',
+          error: "Invalid sidecar key ID format",
         });
         return {
           success: false,
@@ -81,7 +78,7 @@ export const registerSidecar = action({
       }
 
       const session = await ctx.runQuery(api.sessions.getByIdWithToken, {
-        id: args.sessionId as any,
+        id: args.sessionId,
         token: args.registrationToken,
       });
 
@@ -99,8 +96,11 @@ export const registerSidecar = action({
         };
       }
 
-      const userProviderKeys = await ctx.runQuery(api.providerKeys.listUserProviderKeys, {});
-      
+      const userProviderKeys = await ctx.runQuery(
+        api.providerKeys.listUserProviderKeys,
+        {}
+      );
+
       if (userProviderKeys.length === 0) {
         return {
           success: false,
@@ -109,23 +109,25 @@ export const registerSidecar = action({
       }
 
       const decryptedKeys = new Map<string, string>();
-      let failedKeys = 0;
+      let _failedKeys = 0;
 
       for (const keyInfo of userProviderKeys) {
         try {
-          const decryptedKey = await ctx.runAction(api.providerKeys.getProviderKey, {
-            userId: session.userId,
-            provider: keyInfo.provider,
-          });
+          const decryptedKey = await ctx.runAction(
+            api.providerKeys.getProviderKey,
+            {
+              userId: session.userId,
+              provider: keyInfo.provider,
+            }
+          );
 
           if (decryptedKey) {
             decryptedKeys.set(keyInfo.provider, decryptedKey);
           } else {
-            failedKeys++;
+            _failedKeys++;
           }
-        } catch (error) {
-          console.error(`Failed to decrypt key for provider ${keyInfo.provider}:`, error);
-          failedKeys++;
+        } catch (_error) {
+          _failedKeys++;
         }
       }
 
@@ -145,10 +147,13 @@ export const registerSidecar = action({
         args.sidecarKeyId
       );
 
-      const sidecarToken = await generateSidecarToken(args.sessionId, args.sidecarKeyId);
+      const sidecarToken = generateSidecarToken(
+        args.sessionId,
+        args.sidecarKeyId
+      );
 
       await ctx.runMutation(api.sessions.updateSidecarRegistration, {
-        sessionId: args.sessionId as any,
+        sessionId: args.sessionId as Id<"sessions">,
         sidecarKeyId: args.sidecarKeyId,
         sidecarPublicKey: args.sidecarPublicKey,
         orchestratorPublicKey: orchestratorKeys.publicKey,
@@ -162,10 +167,12 @@ export const registerSidecar = action({
         sidecarToken,
         providersCount: decryptedKeys.size,
       };
-
     } catch (error) {
-      const errorMessage = error instanceof CryptoError ? error.message : "Unknown provisioning error";
-      
+      const errorMessage =
+        error instanceof CryptoError
+          ? error.message
+          : "Unknown provisioning error";
+
       return {
         success: false,
         error: errorMessage,
@@ -176,13 +183,16 @@ export const registerSidecar = action({
 
 export const refreshProviderKeys = action({
   args: {
-    sessionId: v.string(),
+    sessionId: v.id("sessions"),
     sidecarToken: v.string(),
     providers: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args): Promise<ProvisioningResult> => {
     try {
-      const isValidToken = await validateSidecarToken(args.sidecarToken, args.sessionId);
+      const isValidToken = validateSidecarToken(
+        args.sidecarToken,
+        args.sessionId
+      );
       if (!isValidToken) {
         return {
           success: false,
@@ -191,10 +201,16 @@ export const refreshProviderKeys = action({
       }
 
       const session = await ctx.runQuery(api.sessions.getById, {
-        id: args.sessionId as any,
+        id: args.sessionId,
       });
 
-      if (!session || !session.sidecarKeyId || !session.sidecarPublicKey || !session.orchestratorPrivateKey) {
+      if (
+        !(
+          session?.sidecarKeyId &&
+          session.sidecarPublicKey &&
+          session.orchestratorPrivateKey
+        )
+      ) {
         return {
           success: false,
           error: "Session not properly registered or missing key exchange data",
@@ -202,10 +218,13 @@ export const refreshProviderKeys = action({
       }
 
       const providersToRefresh = args.providers || [];
-      const userKeys = await ctx.runQuery(api.providerKeys.listUserProviderKeys, {});
-      
-      const relevantKeys = args.providers 
-        ? userKeys.filter(key => providersToRefresh.includes(key.provider))
+      const userKeys = await ctx.runQuery(
+        api.providerKeys.listUserProviderKeys,
+        {}
+      );
+
+      const relevantKeys = args.providers
+        ? userKeys.filter((key) => providersToRefresh.includes(key.provider))
         : userKeys;
 
       if (relevantKeys.length === 0) {
@@ -219,16 +238,19 @@ export const refreshProviderKeys = action({
 
       for (const keyInfo of relevantKeys) {
         try {
-          const decryptedKey = await ctx.runAction(api.providerKeys.getProviderKey, {
-            userId: session.userId,
-            provider: keyInfo.provider,
-          });
+          const decryptedKey = await ctx.runAction(
+            api.providerKeys.getProviderKey,
+            {
+              userId: session.userId,
+              provider: keyInfo.provider,
+            }
+          );
 
           if (decryptedKey) {
             decryptedKeys.set(keyInfo.provider, decryptedKey);
           }
-        } catch (error) {
-          console.error(`Failed to decrypt key for provider ${keyInfo.provider}:`, error);
+        } catch {
+          // Silently skip keys that fail to decrypt - overall success is checked later
         }
       }
 
@@ -251,10 +273,10 @@ export const refreshProviderKeys = action({
         sealedKeys,
         providersCount: decryptedKeys.size,
       };
-
     } catch (error) {
-      const errorMessage = error instanceof CryptoError ? error.message : "Unknown refresh error";
-      
+      const errorMessage =
+        error instanceof CryptoError ? error.message : "Unknown refresh error";
+
       return {
         success: false,
         error: errorMessage,
@@ -263,7 +285,7 @@ export const refreshProviderKeys = action({
   },
 });
 
-async function generateSidecarToken(sessionId: string, sidecarKeyId: string): Promise<string> {
+function generateSidecarToken(sessionId: string, sidecarKeyId: string): string {
   const payload = {
     sessionId,
     sidecarKeyId,
@@ -274,18 +296,17 @@ async function generateSidecarToken(sessionId: string, sidecarKeyId: string): Pr
   return btoa(JSON.stringify(payload));
 }
 
-async function validateSidecarToken(token: string, sessionId: string): Promise<boolean> {
+function validateSidecarToken(token: string, sessionId: string): boolean {
   try {
     const payload = JSON.parse(atob(token));
-    
+
     if (payload.sessionId !== sessionId) {
       return false;
     }
 
     const age = Date.now() - payload.timestamp;
-    const MAX_TOKEN_AGE = 24 * 60 * 60 * 1000; // 24 hours
-    
-    return age < MAX_TOKEN_AGE;
+
+    return age < MAX_TOKEN_AGE_MS;
   } catch {
     return false;
   }
