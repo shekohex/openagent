@@ -1,0 +1,173 @@
+export class CryptoError extends Error {
+  constructor(message: string, cause?: Error) {
+    super(message);
+    this.name = "CryptoError";
+    if (cause) {
+      this.cause = cause;
+    }
+  }
+}
+
+export type EncryptionResult = {
+  ciphertext: string;
+  nonce: string;
+  tag: string;
+};
+
+export function generateRandomBytes(length: number): Uint8Array {
+  if (length <= 0 || length > 1024) {
+    throw new CryptoError(`Invalid byte length: ${length}. Must be 1-1024.`);
+  }
+  return crypto.getRandomValues(new Uint8Array(length));
+}
+
+export function generateSecureNonce(): Uint8Array {
+  return generateRandomBytes(12);
+}
+
+export async function generateDataKey(): Promise<CryptoKey> {
+  try {
+    return await crypto.subtle.generateKey(
+      {
+        name: "AES-GCM",
+        length: 256,
+      },
+      true,
+      ["encrypt", "decrypt"]
+    );
+  } catch (error) {
+    throw new CryptoError("Failed to generate data key", error as Error);
+  }
+}
+
+export async function exportKey(key: CryptoKey): Promise<string> {
+  try {
+    const exported = await crypto.subtle.exportKey("raw", key);
+    return uint8ArrayToBase64(new Uint8Array(exported));
+  } catch (error) {
+    throw new CryptoError("Failed to export key", error as Error);
+  }
+}
+
+export async function importKey(keyData: string): Promise<CryptoKey> {
+  try {
+    const keyBytes = base64ToUint8Array(keyData);
+    return await crypto.subtle.importKey(
+      "raw",
+      keyBytes,
+      {
+        name: "AES-GCM",
+        length: 256,
+      },
+      false,
+      ["encrypt", "decrypt"]
+    );
+  } catch (error) {
+    throw new CryptoError("Failed to import key", error as Error);
+  }
+}
+
+export async function encryptWithKey(
+  key: CryptoKey,
+  plaintext: string,
+  nonce?: Uint8Array
+): Promise<EncryptionResult> {
+  try {
+    const iv = nonce || generateSecureNonce();
+    const plaintextBytes = new TextEncoder().encode(plaintext);
+
+    const ciphertext = await crypto.subtle.encrypt(
+      {
+        name: "AES-GCM",
+        iv,
+      },
+      key,
+      plaintextBytes
+    );
+
+    const ciphertextArray = new Uint8Array(ciphertext);
+    const tag = ciphertextArray.slice(-16);
+    const data = ciphertextArray.slice(0, -16);
+
+    return {
+      ciphertext: uint8ArrayToBase64(data),
+      nonce: uint8ArrayToBase64(iv),
+      tag: uint8ArrayToBase64(tag),
+    };
+  } catch (error) {
+    throw new CryptoError("Encryption failed", error as Error);
+  }
+}
+
+export async function decryptWithKey(
+  key: CryptoKey,
+  encryptionResult: EncryptionResult
+): Promise<string> {
+  try {
+    const ciphertextBytes = base64ToUint8Array(encryptionResult.ciphertext);
+    const nonceBytes = base64ToUint8Array(encryptionResult.nonce);
+    const tagBytes = base64ToUint8Array(encryptionResult.tag);
+
+    const combinedCiphertext = new Uint8Array(
+      ciphertextBytes.length + tagBytes.length
+    );
+    combinedCiphertext.set(ciphertextBytes);
+    combinedCiphertext.set(tagBytes, ciphertextBytes.length);
+
+    const decrypted = await crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv: nonceBytes,
+      },
+      key,
+      combinedCiphertext
+    );
+
+    return new TextDecoder().decode(decrypted);
+  } catch (error) {
+    throw new CryptoError("Decryption failed", error as Error);
+  }
+}
+
+export function uint8ArrayToBase64(bytes: Uint8Array): string {
+  const binaryString = Array.from(bytes, (byte) =>
+    String.fromCharCode(byte)
+  ).join("");
+  return btoa(binaryString);
+}
+
+export function base64ToUint8Array(base64: string): Uint8Array {
+  try {
+    const binaryString = atob(base64);
+    return new Uint8Array(binaryString.length).map((_, i) =>
+      binaryString.charCodeAt(i)
+    );
+  } catch (error) {
+    throw new CryptoError("Invalid base64 string", error as Error);
+  }
+}
+
+export function uint8ArrayToBase64Url(bytes: Uint8Array): string {
+  return uint8ArrayToBase64(bytes)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+export function base64UrlToUint8Array(base64url: string): Uint8Array {
+  const base64 = base64url
+    .replace(/-/g, "+")
+    .replace(/_/g, "/")
+    .padEnd(base64url.length + ((4 - (base64url.length % 4)) % 4), "=");
+  return base64ToUint8Array(base64);
+}
+
+export function zeroMemory(array: Uint8Array): void {
+  array.fill(0);
+}
+
+export function clearString(str: string): void {
+  if (typeof str !== "string") {
+    return;
+  }
+}
