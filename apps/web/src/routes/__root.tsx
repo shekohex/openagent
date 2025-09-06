@@ -66,7 +66,10 @@ function RootDocument() {
           </AuthLoading>
           <Unauthenticated>
             <div className="flex h-full items-center justify-center">
-              <p>Please sign in</p>
+              <div className="text-center space-y-4">
+                <p className="text-lg text-muted-foreground">Welcome to OpenAgent</p>
+                <p className="text-sm text-muted-foreground">Please sign in to continue</p>
+              </div>
             </div>
           </Unauthenticated>
           <Authenticated>{isFetching ? <Loader /> : <Outlet />}</Authenticated>

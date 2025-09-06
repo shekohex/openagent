@@ -1,4 +1,7 @@
 import { Link } from "@tanstack/react-router";
+import { Authenticated, Unauthenticated } from "convex/react";
+import { Button } from "@/components/ui/button";
+import { UserMenu } from "@/components/auth/UserMenu";
 
 export default function Header() {
   const links = [{ to: "/", label: "Home" }] as const;
@@ -15,7 +18,18 @@ export default function Header() {
             );
           })}
         </nav>
-        <div className="flex items-center gap-2" />
+        <div className="flex items-center gap-2">
+          <Authenticated>
+            <UserMenu />
+          </Authenticated>
+          <Unauthenticated>
+            <Link to="/login">
+              <Button variant="ghost" size="sm">
+                Sign In
+              </Button>
+            </Link>
+          </Unauthenticated>
+        </div>
       </div>
       <hr />
     </div>
