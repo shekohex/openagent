@@ -5,19 +5,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const signUpSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const MIN_NAME_LENGTH = 2;
+const MIN_PASSWORD_LENGTH = 8;
+
+const signUpSchema = z
+  .object({
+    name: z.string().min(MIN_NAME_LENGTH, "Name must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
+    password: z
+      .string()
+      .min(MIN_PASSWORD_LENGTH, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 export function SignUpForm() {
   const { signIn } = useAuthActions();
-  
+
   const form = useForm({
     defaultValues: {
       name: "",
@@ -41,125 +48,118 @@ export function SignUpForm() {
   return (
     <div>
       <form
+        className="space-y-4"
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
           form.handleSubmit();
         }}
-        className="space-y-4"
       >
         <div>
-          <form.Field
-            name="name"
-            children={(field) => (
+          <form.Field name="name">
+            {(field) => (
               <>
                 <Label htmlFor={field.name}>Name</Label>
                 <Input
                   id={field.name}
                   name={field.name}
-                  type="text"
-                  placeholder="Enter your name"
-                  value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Enter your name"
+                  type="text"
+                  value={field.state.value}
                 />
                 {field.state.meta.errors.length > 0 && (
-                  <p className="mt-1 text-sm text-red-600">
+                  <p className="mt-1 text-red-600 text-sm">
                     {String(field.state.meta.errors[0])}
                   </p>
                 )}
               </>
             )}
-          />
+          </form.Field>
         </div>
 
         <div>
-          <form.Field
-            name="email"
-            children={(field) => (
+          <form.Field name="email">
+            {(field) => (
               <>
                 <Label htmlFor={field.name}>Email</Label>
                 <Input
                   id={field.name}
                   name={field.name}
-                  type="email"
-                  placeholder="Enter your email"
-                  value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Enter your email"
+                  type="email"
+                  value={field.state.value}
                 />
                 {field.state.meta.errors.length > 0 && (
-                  <p className="mt-1 text-sm text-red-600">
+                  <p className="mt-1 text-red-600 text-sm">
                     {String(field.state.meta.errors[0])}
                   </p>
                 )}
               </>
             )}
-          />
+          </form.Field>
         </div>
 
         <div>
-          <form.Field
-            name="password"
-            children={(field) => (
+          <form.Field name="password">
+            {(field) => (
               <>
                 <Label htmlFor={field.name}>Password</Label>
                 <Input
                   id={field.name}
                   name={field.name}
-                  type="password"
-                  placeholder="Enter your password"
-                  value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Enter your password"
+                  type="password"
+                  value={field.state.value}
                 />
                 {field.state.meta.errors.length > 0 && (
-                  <p className="mt-1 text-sm text-red-600">
+                  <p className="mt-1 text-red-600 text-sm">
                     {String(field.state.meta.errors[0])}
                   </p>
                 )}
               </>
             )}
-          />
+          </form.Field>
         </div>
 
         <div>
-          <form.Field
-            name="confirmPassword"
-            children={(field) => (
+          <form.Field name="confirmPassword">
+            {(field) => (
               <>
                 <Label htmlFor={field.name}>Confirm Password</Label>
                 <Input
                   id={field.name}
                   name={field.name}
-                  type="password"
-                  placeholder="Confirm your password"
-                  value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Confirm your password"
+                  type="password"
+                  value={field.state.value}
                 />
                 {field.state.meta.errors.length > 0 && (
-                  <p className="mt-1 text-sm text-red-600">
+                  <p className="mt-1 text-red-600 text-sm">
                     {String(field.state.meta.errors[0])}
                   </p>
                 )}
               </>
             )}
-          />
+          </form.Field>
         </div>
 
         <form.Subscribe
           selector={(state) => [state.canSubmit, state.isSubmitting]}
-          children={([canSubmit, isSubmitting]) => (
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={!canSubmit}
-            >
+        >
+          {([canSubmit, isSubmitting]) => (
+            <Button className="w-full" disabled={!canSubmit} type="submit">
               {isSubmitting ? "Creating account..." : "Sign Up"}
             </Button>
           )}
-        />
+        </form.Subscribe>
       </form>
     </div>
   );

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Authenticated, Unauthenticated } from "convex/react";
-import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/auth/UserMenu";
+import { Button } from "@/components/ui/button";
 
 export default function Header() {
   const links = [{ to: "/", label: "Home" }] as const;
@@ -24,7 +24,7 @@ export default function Header() {
           </Authenticated>
           <Unauthenticated>
             <Link to="/login">
-              <Button variant="ghost" size="sm">
+              <Button size="sm" variant="ghost">
                 Sign In
               </Button>
             </Link>
