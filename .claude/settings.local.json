@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh issue view:*)",
+      "Bash(fd:*)",
+      "mcp__firecrawl-mcp__firecrawl_scrape",
+      "Bash(bun check-types:*)",
+      "mcp__firecrawl-mcp__firecrawl_search"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
