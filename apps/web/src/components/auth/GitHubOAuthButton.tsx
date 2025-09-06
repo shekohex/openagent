@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { SiGithub } from "@icons-pack/react-simple-icons";
+import { Button } from "@/components/ui/button";
 
 export function GitHubOAuthButton() {
   const { signIn } = useAuthActions();
