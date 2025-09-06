@@ -1,3 +1,4 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { GitHubOAuthButton } from "@/components/auth/GitHubOAuthButton";
 import { SignUpForm } from "@/components/auth/SignUpForm";
 import {
@@ -7,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_unauthenticated/signup")({
   component: SignUpPage,
