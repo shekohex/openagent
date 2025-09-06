@@ -25,6 +25,9 @@
   },
   "linter": {
     "rules": {
+      "performance": {
+        "noNamespaceImport": "off"
+      },
       "suspicious": {
         "noUnknownAtRules": "off",
         "noConsole": "warn"
