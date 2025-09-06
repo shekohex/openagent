@@ -10,6 +10,7 @@ const schema = defineSchema({
     image: v.optional(v.string()),
     email: v.optional(v.string()),
     emailVerificationTime: v.optional(v.number()),
+    githubId: v.optional(v.number()),
     createdAt: v.optional(v.number()),
   }).index("email", ["email"]),
 
