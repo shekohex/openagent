@@ -10,7 +10,12 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import type { ConvexReactClient } from "convex/react";
+import {
+  Authenticated,
+  AuthLoading,
+  type ConvexReactClient,
+  Unauthenticated,
+} from "convex/react";
 import Header from "../components/header";
 import appCss from "../index.css?url";
 
@@ -56,7 +61,15 @@ function RootDocument() {
       <body>
         <div className="grid h-svh grid-rows-[auto_1fr]">
           <Header />
-          {isFetching ? <Loader /> : <Outlet />}
+          <AuthLoading>
+            <Loader />
+          </AuthLoading>
+          <Unauthenticated>
+            <div className="flex h-full items-center justify-center">
+              <p>Please sign in</p>
+            </div>
+          </Unauthenticated>
+          <Authenticated>{isFetching ? <Loader /> : <Outlet />}</Authenticated>
         </div>
         <Toaster richColors />
         <TanStackRouterDevtools position="bottom-left" />
