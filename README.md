@@ -35,12 +35,14 @@ Then, run the development server:
 bun dev
 ```
 
+Setup Auth Keys:
+
+```bash
+bunx @convex-dev/auth
+```
+
 Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
 Your app will connect to the Convex cloud backend automatically.
-
-
-
-
 
 ## Project Structure
 
