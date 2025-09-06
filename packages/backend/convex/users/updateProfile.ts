@@ -8,17 +8,17 @@ export const updateProfile = authenticatedMutation({
   },
   handler: async (ctx, args) => {
     const updateData: { name?: string; image?: string } = {};
-    
+
     if (args.name !== undefined) {
       updateData.name = args.name;
     }
-    
+
     if (args.image !== undefined) {
       updateData.image = args.image;
     }
-    
+
     await ctx.db.patch(ctx.userId, updateData);
-    
+
     return ctx.db.get(ctx.userId);
   },
 });
