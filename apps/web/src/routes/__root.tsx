@@ -1,3 +1,5 @@
+import Loader from "@/components/loader";
+import { Toaster } from "@/components/ui/sonner";
 import type { ConvexQueryClient } from "@convex-dev/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -8,14 +10,7 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import {
-  Authenticated,
-  AuthLoading,
-  type ConvexReactClient,
-  Unauthenticated,
-} from "convex/react";
-import Loader from "@/components/loader";
-import { Toaster } from "@/components/ui/sonner";
+import { AuthLoading, type ConvexReactClient } from "convex/react";
 import Header from "../components/header";
 import appCss from "../index.css?url";
 
@@ -36,7 +31,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "My App",
+        title: "OpenAgent",
       },
     ],
     links: [
@@ -64,15 +59,7 @@ function RootDocument() {
           <AuthLoading>
             <Loader />
           </AuthLoading>
-          <Unauthenticated>
-            <div className="flex h-full items-center justify-center">
-              <div className="text-center space-y-4">
-                <p className="text-lg text-muted-foreground">Welcome to OpenAgent</p>
-                <p className="text-sm text-muted-foreground">Please sign in to continue</p>
-              </div>
-            </div>
-          </Unauthenticated>
-          <Authenticated>{isFetching ? <Loader /> : <Outlet />}</Authenticated>
+          {isFetching ? <Loader /> : <Outlet />}
         </div>
         <Toaster richColors />
         <TanStackRouterDevtools position="bottom-left" />
