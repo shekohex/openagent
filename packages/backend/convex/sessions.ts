@@ -1,6 +1,8 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { authenticatedMutation, authenticatedQuery } from "./lib/auth";
+
+const MAX_SESSIONS_LIMIT = 50;
 
 export const getById = query({
   args: {
@@ -18,11 +20,11 @@ export const getByIdWithToken = query({
   },
   handler: async (ctx, args) => {
     const session = await ctx.db.get(args.id);
-    
+
     if (!session || session.registrationToken !== args.token) {
       return null;
     }
-    
+
     return session;
   },
 });
@@ -61,7 +63,7 @@ export const createSession = authenticatedMutation({
   handler: async (ctx, args) => {
     const now = Date.now();
     const registrationToken = crypto.randomUUID();
-    
+
     const sessionId = await ctx.db.insert("sessions", {
       userId: ctx.userId,
       title: args.title || `Session ${new Date().toISOString()}`,
@@ -86,6 +88,6 @@ export const listUserSessions = authenticatedQuery({
       .query("sessions")
       .withIndex("by_user", (q) => q.eq("userId", ctx.userId))
       .order("desc")
-      .take(50);
+      .take(MAX_SESSIONS_LIMIT);
   },
 });
