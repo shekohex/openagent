@@ -1,13 +1,15 @@
 import { CryptoError, importKey } from "./crypto";
 
-export interface MasterKeyProvider {
+const MIN_MASTER_KEY_LENGTH = 32; // 256 bits
+
+export type MasterKeyProvider = {
   getMasterKey(): Promise<CryptoKey>;
   getKeyId(): string;
-}
+};
 
 export class EnvironmentMasterKeyProvider implements MasterKeyProvider {
   private readonly envVarName: string;
-  private cachedKey?: CryptoKey;
+  private readonly cachedKey?: CryptoKey;
 
   constructor(envVarName = "OPENAGENT_MASTER_KEY") {
     this.envVarName = envVarName;
@@ -25,9 +27,9 @@ export class EnvironmentMasterKeyProvider implements MasterKeyProvider {
       );
     }
 
-    if (keyString.length < 32) {
+    if (keyString.length < MIN_MASTER_KEY_LENGTH) {
       throw new CryptoError(
-        `Master key must be at least 32 characters (256 bits). Current length: ${keyString.length}`
+        `Master key must be at least ${MIN_MASTER_KEY_LENGTH} characters (256 bits). Current length: ${keyString.length}`
       );
     }
 
@@ -54,7 +56,7 @@ export class KMSMasterKeyProvider implements MasterKeyProvider {
     this.keyId = keyId;
   }
 
-  async getMasterKey(): Promise<CryptoKey> {
+  getMasterKey(): Promise<CryptoKey> {
     throw new CryptoError(
       "KMS provider not implemented yet. Use EnvironmentMasterKeyProvider for now."
     );
@@ -69,7 +71,7 @@ export class MasterKeyManager {
   private provider: MasterKeyProvider;
 
   constructor(provider?: MasterKeyProvider) {
-    this.provider = provider || new EnvironmentMasterKeyProvider();
+    this.provider = provider ?? new EnvironmentMasterKeyProvider();
   }
 
   async getMasterKey(): Promise<CryptoKey> {
