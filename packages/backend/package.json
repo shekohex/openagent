@@ -12,12 +12,12 @@
   "description": "",
   "devDependencies": {
     "@types/node": "^24.3.1",
-    "jose": "^6.1.0",
     "typescript": "^5.9.2"
   },
   "dependencies": {
     "@auth/core": "0.37.0",
     "@convex-dev/auth": "^0.0.88",
+    "jose": "^6.1.0",
     "convex": "^1.26.2",
     "convex-helpers": "^0.1.104"
   }
