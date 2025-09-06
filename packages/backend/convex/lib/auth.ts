@@ -1,5 +1,9 @@
-import { customCtx, customMutation, customQuery } from "convex-helpers/server/customFunctions";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import {
+  customCtx,
+  customMutation,
+  customQuery,
+} from "convex-helpers/server/customFunctions";
 import { mutation, query } from "../_generated/server";
 
 export const authenticatedQuery = customQuery(
