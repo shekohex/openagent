@@ -11,6 +11,7 @@
       "!**/.zed",
       "!**/.vscode",
       "!**/routeTree.gen.ts",
+      "!**/_generated",
       "!**/src-tauri",
       "!**/.nuxt",
       "!bts.jsonc",
@@ -21,6 +22,25 @@
       "!**/.source",
       "!**/tsconfig.json"
     ]
+  },
+  "linter": {
+    "rules": {
+      "suspicious": {
+        "noUnknownAtRules": "off",
+        "noConsole": "warn"
+      },
+      "style": {
+        "useFilenamingConvention": {
+          "level": "warn",
+          "options": {
+            "strictCase": false,
+            "requireAscii": true,
+            "match": "%?(.+?)[.](.+)",
+            "filenameCases": ["kebab-case", "camelCase", "export"]
+          }
+        }
+      }
+    }
   },
   "extends": ["ultracite"]
 }
