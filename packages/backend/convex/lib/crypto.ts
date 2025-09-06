@@ -1,3 +1,9 @@
+const MAX_RANDOM_BYTES_LENGTH = 1024;
+const NONCE_LENGTH = 12;
+const TAG_LENGTH = 16;
+const AES_KEY_LENGTH = 256;
+const PADDING_MOD = 4;
+
 export class CryptoError extends Error {
   constructor(message: string, cause?: Error) {
     super(message);
@@ -15,14 +21,14 @@ export type EncryptionResult = {
 };
 
 export function generateRandomBytes(length: number): Uint8Array {
-  if (length <= 0 || length > 1024) {
+  if (length <= 0 || length > MAX_RANDOM_BYTES_LENGTH) {
     throw new CryptoError(`Invalid byte length: ${length}. Must be 1-1024.`);
   }
   return crypto.getRandomValues(new Uint8Array(length));
 }
 
 export function generateSecureNonce(): Uint8Array {
-  return generateRandomBytes(12);
+  return generateRandomBytes(NONCE_LENGTH);
 }
 
 export async function generateDataKey(): Promise<CryptoKey> {
@@ -30,7 +36,7 @@ export async function generateDataKey(): Promise<CryptoKey> {
     return await crypto.subtle.generateKey(
       {
         name: "AES-GCM",
-        length: 256,
+        length: AES_KEY_LENGTH,
       },
       true,
       ["encrypt", "decrypt"]
@@ -54,10 +60,10 @@ export async function importKey(keyData: string): Promise<CryptoKey> {
     const keyBytes = base64ToUint8Array(keyData);
     return await crypto.subtle.importKey(
       "raw",
-      keyBytes,
+      keyBytes as unknown as ArrayBuffer,
       {
         name: "AES-GCM",
-        length: 256,
+        length: AES_KEY_LENGTH,
       },
       false,
       ["encrypt", "decrypt"]
@@ -79,15 +85,15 @@ export async function encryptWithKey(
     const ciphertext = await crypto.subtle.encrypt(
       {
         name: "AES-GCM",
-        iv,
+        iv: iv as unknown as ArrayBuffer,
       },
       key,
       plaintextBytes
     );
 
     const ciphertextArray = new Uint8Array(ciphertext);
-    const tag = ciphertextArray.slice(-16);
-    const data = ciphertextArray.slice(0, -16);
+    const tag = ciphertextArray.slice(-TAG_LENGTH);
+    const data = ciphertextArray.slice(0, -TAG_LENGTH);
 
     return {
       ciphertext: uint8ArrayToBase64(data),
@@ -117,7 +123,7 @@ export async function decryptWithKey(
     const decrypted = await crypto.subtle.decrypt(
       {
         name: "AES-GCM",
-        iv: nonceBytes,
+        iv: nonceBytes as unknown as ArrayBuffer,
       },
       key,
       combinedCiphertext
@@ -158,7 +164,11 @@ export function base64UrlToUint8Array(base64url: string): Uint8Array {
   const base64 = base64url
     .replace(/-/g, "+")
     .replace(/_/g, "/")
-    .padEnd(base64url.length + ((4 - (base64url.length % 4)) % 4), "=");
+    .padEnd(
+      base64url.length +
+        ((PADDING_MOD - (base64url.length % PADDING_MOD)) % PADDING_MOD),
+      "="
+    );
   return base64ToUint8Array(base64);
 }
 
