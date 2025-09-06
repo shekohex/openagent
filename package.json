@@ -1,25 +1,25 @@
 {
-	"name": "openagent",
-	"private": true,
-	"workspaces": [
-		"apps/*",
-		"packages/*"
-	],
-	"scripts": {
-		"check": "biome check --write .",
-		"dev": "turbo dev",
-		"build": "turbo build",
-		"check-types": "turbo check-types",
-		"dev:native": "turbo -F native dev",
-		"dev:web": "turbo -F web dev",
-		"dev:server": "turbo -F @openagent/backend dev",
-		"dev:setup": "turbo -F @openagent/backend dev:setup"
-	},
-	"dependencies": {},
-	"devDependencies": {
-		"@biomejs/biome": "2.2.2",
-		"turbo": "^2.5.6",
-		"ultracite": "5.3.3"
-	},
-	"packageManager": "bun@1.2.21"
+  "name": "openagent",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "check": "biome check --write .",
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:native": "turbo -F native dev",
+    "dev:web": "turbo -F web dev",
+    "dev:server": "turbo -F @openagent/backend dev",
+    "dev:setup": "turbo -F @openagent/backend dev:setup"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@biomejs/biome": "2.2.2",
+    "turbo": "^2.5.6",
+    "ultracite": "5.3.3"
+  },
+  "packageManager": "bun@1.2.21"
 }

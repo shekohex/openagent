@@ -1,20 +1,20 @@
 {
-	"name": "@openagent/backend",
-	"version": "1.0.0",
-	"scripts": {
-		"dev": "convex dev",
-		"dev:setup": "convex dev --configure --until-success"
-	},
-	"author": "",
-	"license": "ISC",
-	"description": "",
-	"devDependencies": {
-		"@types/node": "^24.3.1",
-		"typescript": "^5.9.2"
-	},
-	"dependencies": {
-		"@auth/core": "0.37.0",
-		"@convex-dev/auth": "^0.0.88",
-		"convex": "^1.26.2"
-	}
+  "name": "@openagent/backend",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "convex dev",
+    "dev:setup": "convex dev --configure --until-success"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@auth/core": "0.37.0",
+    "@convex-dev/auth": "^0.0.88",
+    "convex": "^1.26.2"
+  }
 }
