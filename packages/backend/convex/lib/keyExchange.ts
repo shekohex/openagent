@@ -20,6 +20,12 @@ export type SealedPayload = {
   recipientKeyId: string;
 };
 
+const KEY_ID_LENGTH = 16;
+const TAG_LENGTH = 16;
+const MILLISECONDS_PER_SECOND = 1000;
+const PAYLOAD_AGE_MINUTES = 5;
+const MAX_PAYLOAD_AGE_MS = PAYLOAD_AGE_MINUTES * 60 * MILLISECONDS_PER_SECOND; // 5 minutes
+
 // biome-ignore lint/complexity/noStaticOnlyClass: tbd
 export class KeyExchange {
   private static readonly KEY_LENGTH = 32;
@@ -45,7 +51,7 @@ export class KeyExchange {
         keyPair.privateKey
       );
 
-      const keyId = uint8ArrayToBase64Url(generateRandomBytes(16));
+      const keyId = uint8ArrayToBase64Url(generateRandomBytes(KEY_ID_LENGTH));
 
       return {
         publicKey: uint8ArrayToBase64Url(new Uint8Array(publicKeyRaw)),
@@ -70,7 +76,7 @@ export class KeyExchange {
 
       const privateKey = await crypto.subtle.importKey(
         "pkcs8",
-        privateKeyBytes,
+        privateKeyBytes as unknown as ArrayBuffer,
         {
           name: "ECDH",
           namedCurve: "P-256",
@@ -81,7 +87,7 @@ export class KeyExchange {
 
       const publicKey = await crypto.subtle.importKey(
         "raw",
-        publicKeyBytes,
+        publicKeyBytes as unknown as ArrayBuffer,
         {
           name: "ECDH",
           namedCurve: "P-256",
@@ -126,15 +132,15 @@ export class KeyExchange {
       const encrypted = await crypto.subtle.encrypt(
         {
           name: "AES-GCM",
-          iv: nonce,
+          iv: nonce as unknown as ArrayBuffer,
         },
         sharedSecret,
         messageBytes
       );
 
       const encryptedArray = new Uint8Array(encrypted);
-      const tag = encryptedArray.slice(-16);
-      const ciphertext = encryptedArray.slice(0, -16);
+      const tag = encryptedArray.slice(-TAG_LENGTH);
+      const ciphertext = encryptedArray.slice(0, -TAG_LENGTH);
 
       return {
         ciphertext: uint8ArrayToBase64(ciphertext),
@@ -171,7 +177,7 @@ export class KeyExchange {
       const decrypted = await crypto.subtle.decrypt(
         {
           name: "AES-GCM",
-          iv: nonceBytes,
+          iv: nonceBytes as unknown as ArrayBuffer,
         },
         sharedSecret,
         combinedCiphertext
@@ -199,7 +205,7 @@ export class KeyExchange {
 
     try {
       const keyIdBytes = base64UrlToUint8Array(keyId);
-      return keyIdBytes.length === 16;
+      return keyIdBytes.length === KEY_ID_LENGTH;
     } catch {
       return false;
     }
@@ -276,9 +282,8 @@ export class SecureProviderKeyDelivery {
 
     const now = Date.now();
     const payloadAge = now - (payload.timestamp || 0);
-    const MAX_AGE = 5 * 60 * 1000; // 5 minutes
 
-    if (payloadAge > MAX_AGE) {
+    if (payloadAge > MAX_PAYLOAD_AGE_MS) {
       throw new CryptoError("Provider keys payload has expired");
     }
 
