@@ -1,9 +1,9 @@
 import { v } from "convex/values";
-import { action, query, mutation } from "./_generated/server";
 import { api } from "./_generated/api";
+import { action, mutation, query } from "./_generated/server";
 import { authenticatedMutation, authenticatedQuery } from "./lib/auth";
-import { getDefaultEnvelopeEncryption } from "./lib/envelope";
 import { CryptoError } from "./lib/crypto";
+import { getDefaultEnvelopeEncryption } from "./lib/envelope";
 
 const MAX_PROVIDER_NAME_LENGTH = 50;
 const MIN_PROVIDER_KEY_LENGTH = 8;
@@ -12,28 +12,38 @@ const HOURS_IN_DAY = 24;
 const MINUTES_IN_HOUR = 60;
 const SECONDS_IN_MINUTE = 60;
 const MILLISECONDS_IN_SECOND = 1000;
-const PROVIDER_CACHE_TTL = HOURS_IN_DAY * MINUTES_IN_HOUR * SECONDS_IN_MINUTE * MILLISECONDS_IN_SECOND;
+const PROVIDER_CACHE_TTL =
+  HOURS_IN_DAY * MINUTES_IN_HOUR * SECONDS_IN_MINUTE * MILLISECONDS_IN_SECOND;
 const DEFAULT_AUDIT_LOG_LIMIT = 50;
 const MAX_SCHEDULED_ROTATIONS = 100;
 
 const PROVIDER_NAME_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;
 
+type CachedProviders = {
+  providers: string[];
+  updatedAt: number;
+};
+
 function validateProviderName(provider: string): void {
-  if (!provider || typeof provider !== 'string') {
+  if (!provider || typeof provider !== "string") {
     throw new Error("Provider name is required");
   }
-  
+
   const trimmed = provider.trim();
   if (trimmed.length === 0) {
     throw new Error("Provider name cannot be empty");
   }
-  
+
   if (trimmed.length > MAX_PROVIDER_NAME_LENGTH) {
-    throw new Error(`Provider name too long (max ${MAX_PROVIDER_NAME_LENGTH} characters)`);
+    throw new Error(
+      `Provider name too long (max ${MAX_PROVIDER_NAME_LENGTH} characters)`
+    );
   }
-  
+
   if (!PROVIDER_NAME_REGEX.test(trimmed)) {
-    throw new Error("Provider name must start with alphanumeric and contain only letters, numbers, dots, hyphens, and underscores");
+    throw new Error(
+      "Provider name must start with alphanumeric and contain only letters, numbers, dots, hyphens, and underscores"
+    );
   }
 }
 
@@ -66,8 +76,10 @@ export const hasProviderKey = authenticatedQuery({
 
     const existing = await ctx.db
       .query("providerKeys")
-      .withIndex("by_provider", (q) => 
-        q.eq("userId", ctx.userId).eq("provider", args.provider.trim().toLowerCase())
+      .withIndex("by_provider", (q) =>
+        q
+          .eq("userId", ctx.userId)
+          .eq("provider", args.provider.trim().toLowerCase())
       )
       .unique();
 
@@ -89,13 +101,17 @@ export const upsertProviderKey = authenticatedMutation({
 
     const trimmedKey = args.key.trim();
     const normalizedProvider = args.provider.trim().toLowerCase();
-    
+
     if (trimmedKey.length < MIN_PROVIDER_KEY_LENGTH) {
-      throw new Error(`Provider key too short (minimum ${MIN_PROVIDER_KEY_LENGTH} characters)`);
+      throw new Error(
+        `Provider key too short (minimum ${MIN_PROVIDER_KEY_LENGTH} characters)`
+      );
     }
 
     if (trimmedKey.length > MAX_PROVIDER_KEY_LENGTH) {
-      throw new Error(`Provider key too long (maximum ${MAX_PROVIDER_KEY_LENGTH} characters)`);
+      throw new Error(
+        `Provider key too long (maximum ${MAX_PROVIDER_KEY_LENGTH} characters)`
+      );
     }
 
     try {
@@ -104,7 +120,7 @@ export const upsertProviderKey = authenticatedMutation({
 
       const existing = await ctx.db
         .query("providerKeys")
-        .withIndex("by_provider", (q) => 
+        .withIndex("by_provider", (q) =>
           q.eq("userId", ctx.userId).eq("provider", normalizedProvider)
         )
         .unique();
@@ -125,7 +141,7 @@ export const upsertProviderKey = authenticatedMutation({
         });
         return { updated: true, provider: normalizedProvider };
       }
-      
+
       await ctx.db.insert("providerKeys", {
         userId: ctx.userId,
         provider: normalizedProvider,
@@ -140,7 +156,6 @@ export const upsertProviderKey = authenticatedMutation({
         createdAt: now,
       });
       return { created: true, provider: normalizedProvider };
-      
     } catch (error) {
       if (error instanceof CryptoError) {
         throw new Error(`Encryption error: ${error.message}`);
@@ -156,11 +171,11 @@ export const deleteProviderKey = authenticatedMutation({
   },
   handler: async (ctx, args) => {
     validateProviderName(args.provider);
-    
+
     const normalizedProvider = args.provider.trim().toLowerCase();
     const existing = await ctx.db
       .query("providerKeys")
-      .withIndex("by_provider", (q) => 
+      .withIndex("by_provider", (q) =>
         q.eq("userId", ctx.userId).eq("provider", normalizedProvider)
       )
       .unique();
@@ -181,7 +196,7 @@ export const getProviderKey = action({
   },
   handler: async (ctx, args) => {
     validateProviderName(args.provider);
-    
+
     const normalizedProvider = args.provider.trim().toLowerCase();
     const key = await ctx.runQuery(api.providerKeys.getEncryptedProviderKey, {
       userId: args.userId,
@@ -219,7 +234,7 @@ export const getEncryptedProviderKey = query({
   handler: async (ctx, args) => {
     const key = await ctx.db
       .query("providerKeys")
-      .withIndex("by_provider", (q) => 
+      .withIndex("by_provider", (q) =>
         q.eq("userId", args.userId).eq("provider", args.provider)
       )
       .unique();
@@ -227,7 +242,7 @@ export const getEncryptedProviderKey = query({
     if (!key) {
       return null;
     }
-    
+
     return {
       encryptedKey: key.encryptedKey,
       encryptedDataKey: key.encryptedDataKey,
@@ -249,7 +264,7 @@ export const updateLastUsed = mutation({
   handler: async (ctx, args) => {
     const key = await ctx.db
       .query("providerKeys")
-      .withIndex("by_provider", (q) => 
+      .withIndex("by_provider", (q) =>
         q.eq("userId", args.userId).eq("provider", args.provider)
       )
       .unique();
@@ -264,35 +279,43 @@ export const updateLastUsed = mutation({
 
 export const getKnownProviders = action({
   args: {},
-  handler: async (ctx) => {
-    const cached = await ctx.runQuery(api.providerKeys.getCachedProviders, {});
-    
-    if (cached && (Date.now() - cached.updatedAt) < PROVIDER_CACHE_TTL) {
+  handler: async (ctx): Promise<string[]> => {
+    const cached: CachedProviders | null = await ctx.runQuery(
+      api.providerKeys.getCachedProviders,
+      {}
+    );
+
+    if (cached && Date.now() - cached.updatedAt < PROVIDER_CACHE_TTL) {
       return cached.providers;
     }
 
     try {
-      const response = await fetch('https://models.dev/api.json');
+      const response = await fetch("https://models.dev/api.json");
       if (!response.ok) {
-        throw new Error('Failed to fetch providers');
+        throw new Error("Failed to fetch providers");
       }
-      
+
       const data = await response.json();
       const providers = Object.keys(data).sort();
-      
+
       await ctx.runMutation(api.providerKeys.updateCachedProviders, {
         providers,
       });
-      
+
       return providers;
     } catch {
       if (cached) {
         return cached.providers;
       }
-      
+
       return [
-        'openai', 'anthropic', 'google', 'openrouter', 
-        'groq', 'togetherai', 'mistral'
+        "openai",
+        "anthropic",
+        "google",
+        "openrouter",
+        "groq",
+        "togetherai",
+        "mistral",
       ];
     }
   },
@@ -301,10 +324,7 @@ export const getKnownProviders = action({
 export const getCachedProviders = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db
-      .query("providerCache")
-      .order("desc")
-      .first();
+    return await ctx.db.query("providerCache").order("desc").first();
   },
 });
 
@@ -313,11 +333,8 @@ export const updateCachedProviders = mutation({
     providers: v.array(v.string()),
   },
   handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query("providerCache")
-      .order("desc")
-      .first();
-    
+    const existing = await ctx.db.query("providerCache").order("desc").first();
+
     if (existing) {
       await ctx.db.patch(existing._id, {
         providers: args.providers,
@@ -348,7 +365,7 @@ export const updateProviderKeyData = mutation({
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("providerKeys")
-      .withIndex("by_provider", (q) => 
+      .withIndex("by_provider", (q) =>
         q.eq("userId", args.userId).eq("provider", args.provider)
       )
       .unique();
@@ -404,22 +421,20 @@ export const getRotationAuditLogs = query({
   },
   handler: async (ctx, args) => {
     const limit = args.limit || DEFAULT_AUDIT_LOG_LIMIT;
-    
+
     if (args.provider) {
       return await ctx.db
         .query("keyRotationAudit")
-        .withIndex("by_provider", (q) => 
+        .withIndex("by_provider", (q) =>
           q.eq("userId", args.userId).eq("provider", args.provider)
         )
         .order("desc")
         .take(limit);
     }
-    
+
     return await ctx.db
       .query("keyRotationAudit")
-      .withIndex("by_user", (q) => 
-        q.eq("userId", args.userId)
-      )
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .order("desc")
       .take(limit);
   },
@@ -435,10 +450,8 @@ export const addScheduledRotation = mutation({
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("scheduledRotations")
-      .withIndex("by_user", (q) => 
-        q.eq("userId", args.userId)
-      )
-      .filter((q) => 
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .filter((q) =>
         q.and(
           q.eq(q.field("provider"), args.provider),
           q.eq(q.field("status"), "pending")
@@ -474,16 +487,18 @@ export const getPendingRotations = query({
   },
   handler: async (ctx, args) => {
     const cutoff = args.before || Date.now();
-    
-    let query = ctx.db
+
+    let rotationQuery = ctx.db
       .query("scheduledRotations")
       .withIndex("by_schedule", (q) => q.lte("scheduledFor", cutoff))
       .filter((q) => q.eq(q.field("status"), "pending"));
 
     if (args.userId) {
-      query = query.filter((q) => q.eq(q.field("userId"), args.userId));
+      rotationQuery = rotationQuery.filter((q) =>
+        q.eq(q.field("userId"), args.userId)
+      );
     }
 
-    return await query.take(MAX_SCHEDULED_ROTATIONS);
+    return await rotationQuery.take(MAX_SCHEDULED_ROTATIONS);
   },
 });
