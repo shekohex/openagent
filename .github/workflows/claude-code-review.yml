@@ -102,4 +102,4 @@ jobs:
           #   'Please provide a thorough code review focusing on our coding standards and best practices.' }}
 
           # Add specific tools for running tests or linting
-          allowed_tools: "Bash(bun run test),Bash(bun run lint),Bash(bun run typecheck),Bash(bunx ultracite check),Bash(bun run build)"
+          allowed_tools: "Bash(bun run test),Bash(bun run lint),Bash(bun run typecheck),Bash(bunx ultracite check),Bash(bun run build),Bash(gh *)"
