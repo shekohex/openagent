@@ -6,9 +6,13 @@ export default {
     },
   ],
   callbacks: {
-    async redirect({ url, baseUrl }) {
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      if (new URL(url).origin === baseUrl) return url;
+    redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+      if (new URL(url).origin === baseUrl) {
+        return url;
+      }
       return baseUrl;
     },
   },
