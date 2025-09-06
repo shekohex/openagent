@@ -25,12 +25,20 @@ const schema = defineSchema({
       v.literal("error")
     ),
     currentInstanceId: v.optional(v.id("instances")),
+    registrationToken: v.optional(v.string()),
+    sidecarKeyId: v.optional(v.string()),
+    sidecarPublicKey: v.optional(v.string()),
+    orchestratorPublicKey: v.optional(v.string()),
+    orchestratorKeyId: v.optional(v.string()),
+    orchestratorPrivateKey: v.optional(v.string()),
+    registeredAt: v.optional(v.number()),
     lastActivityAt: v.number(),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_user", ["userId", "createdAt"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_registration_token", ["registrationToken"]),
 
   instances: defineTable({
     sessionId: v.id("sessions"),
@@ -55,6 +63,11 @@ const schema = defineSchema({
     encryptedKey: v.string(),
     encryptedDataKey: v.string(),
     keyVersion: v.number(),
+    nonce: v.string(),
+    tag: v.string(),
+    dataKeyNonce: v.string(),
+    dataKeyTag: v.string(),
+    masterKeyId: v.string(),
     createdAt: v.number(),
     lastUsedAt: v.optional(v.number()),
   })
@@ -99,6 +112,41 @@ const schema = defineSchema({
   })
     .index("by_session", ["sessionId"])
     .index("by_type", ["sessionId", "type"]),
+
+  providerCache: defineTable({
+    providers: v.array(v.string()),
+    updatedAt: v.number(),
+  }),
+
+  keyRotationAudit: defineTable({
+    userId: v.id("users"),
+    provider: v.string(),
+    oldVersion: v.number(),
+    newVersion: v.number(),
+    timestamp: v.number(),
+    success: v.boolean(),
+    error: v.optional(v.string()),
+  })
+    .index("by_user", ["userId", "timestamp"])
+    .index("by_provider", ["userId", "provider", "timestamp"]),
+
+  scheduledRotations: defineTable({
+    userId: v.id("users"),
+    provider: v.string(),
+    scheduledFor: v.number(),
+    newKeyVersion: v.optional(v.number()),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("completed"),
+      v.literal("failed"),
+      v.literal("cancelled")
+    ),
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_user", ["userId", "scheduledFor"])
+    .index("by_status", ["status", "scheduledFor"])
+    .index("by_schedule", ["scheduledFor"]),
 });
 
 export default schema;
