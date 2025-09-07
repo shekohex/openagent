@@ -1,15 +1,20 @@
-import { authenticatedInternalAction } from "../lib/auth";
-import { internal } from "../_generated/api";
 import { v } from "convex/values";
-import { getDefaultEnvelopeEncryption } from "../lib/envelope";
+import { internal } from "./_generated/api";
+import { authenticatedInternalMutation } from "./lib/auth";
+import { getDefaultEnvelopeEncryption } from "./lib/envelope";
 
-export const rotateProviderKey = authenticatedInternalAction({
+export const rotateProviderKey = authenticatedInternalMutation({
   args: {
     provider: v.string(),
   },
+  returns: v.object({
+    success: v.boolean(),
+    provider: v.string(),
+    newVersion: v.number(),
+  }),
   handler: async (ctx, args) => {
     const envelope = getDefaultEnvelopeEncryption();
-    
+
     // Get the current encrypted key
     const currentKey = await ctx.runQuery(
       internal.providerKeys.getEncryptedProviderKey,
