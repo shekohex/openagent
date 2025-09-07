@@ -15,7 +15,8 @@
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F @openagent/backend dev",
     "dev:setup": "turbo -F @openagent/backend dev:setup",
-    "convex:codegen": "turbo -F @openagent/backend codegen"
+    "convex:codegen": "turbo -F @openagent/backend codegen",
+    "test": "turbo test"
   },
   "dependencies": {},
   "devDependencies": {

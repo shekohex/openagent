@@ -196,7 +196,7 @@ export function clearString(str: string): void {
     // Then fill with zeros
     buffer.fill(0);
 
-    // Force garbage collection hint (not guaranteed but helps)
+    // biome-ignore lint/style/noParameterAssign: Force garbage collection hint (not guaranteed but helps)
     str = "";
   } catch {
     // Silent fail - best effort memory clearing
@@ -204,42 +204,42 @@ export function clearString(str: string): void {
 }
 
 export class SecureBuffer {
-  private buffer: Uint8Array;
-  private cleared = false;
+  readonly #buffer: Uint8Array;
+  #cleared = false;
 
   constructor(data: string | Uint8Array) {
     if (typeof data === "string") {
       const encoder = new TextEncoder();
-      this.buffer = encoder.encode(data);
+      this.#buffer = encoder.encode(data);
     } else {
-      this.buffer = new Uint8Array(data);
+      this.#buffer = new Uint8Array(data);
     }
   }
 
   get(): Uint8Array {
-    if (this.cleared) {
+    if (this.#cleared) {
       throw new CryptoError("SecureBuffer has been cleared");
     }
-    return this.buffer;
+    return this.#buffer;
   }
 
   toString(): string {
-    if (this.cleared) {
+    if (this.#cleared) {
       throw new CryptoError("SecureBuffer has been cleared");
     }
     const decoder = new TextDecoder();
-    return decoder.decode(this.buffer);
+    return decoder.decode(this.#buffer);
   }
 
   clear(): void {
-    if (!this.cleared) {
+    if (!this.#cleared) {
       // Overwrite with random data first
       if (typeof crypto !== "undefined" && crypto.getRandomValues) {
-        crypto.getRandomValues(this.buffer);
+        crypto.getRandomValues(this.#buffer);
       }
       // Then zeros
-      this.buffer.fill(0);
-      this.cleared = true;
+      this.#buffer.fill(0);
+      this.#cleared = true;
     }
   }
 

@@ -6,7 +6,7 @@
     "dev:setup": "convex dev --configure --until-success",
     "codegen": "convex codegen",
     "check-types": "tsc --noEmit",
-    "test": "echo Please use bun test:once or test:debug",
+    "test": "bun run test:once",
     "test:once": "vitest run",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:coverage": "vitest run --coverage --coverage.provider=istanbul --coverage.reporter=text"
