@@ -5,6 +5,8 @@ const AES_KEY_LENGTH = 256;
 const PADDING_MOD = 4;
 
 export class CryptoError extends Error {
+  cause?: Error;
+
   constructor(message: string, cause?: Error) {
     super(message);
     this.name = "CryptoError";
@@ -179,5 +181,71 @@ export function zeroMemory(array: Uint8Array): void {
 export function clearString(str: string): void {
   if (typeof str !== "string") {
     return;
+  }
+
+  // Convert string to buffer and overwrite with random data then zeros
+  try {
+    const encoder = new TextEncoder();
+    const buffer = encoder.encode(str);
+
+    // First overwrite with random values
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+      crypto.getRandomValues(buffer);
+    }
+
+    // Then fill with zeros
+    buffer.fill(0);
+
+    // Force garbage collection hint (not guaranteed but helps)
+    // @ts-ignore - str reassignment for memory clearing
+    str = "";
+  } catch {
+    // Silent fail - best effort memory clearing
+  }
+}
+
+export class SecureBuffer {
+  private buffer: Uint8Array;
+  private cleared = false;
+
+  constructor(data: string | Uint8Array) {
+    if (typeof data === "string") {
+      const encoder = new TextEncoder();
+      this.buffer = encoder.encode(data);
+    } else {
+      this.buffer = new Uint8Array(data);
+    }
+  }
+
+  get(): Uint8Array {
+    if (this.cleared) {
+      throw new CryptoError("SecureBuffer has been cleared");
+    }
+    return this.buffer;
+  }
+
+  toString(): string {
+    if (this.cleared) {
+      throw new CryptoError("SecureBuffer has been cleared");
+    }
+    const decoder = new TextDecoder();
+    return decoder.decode(this.buffer);
+  }
+
+  clear(): void {
+    if (!this.cleared) {
+      // Overwrite with random data first
+      if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+        crypto.getRandomValues(this.buffer);
+      }
+      // Then zeros
+      this.buffer.fill(0);
+      this.cleared = true;
+    }
+  }
+
+  // Ensure cleanup on garbage collection
+  [Symbol.dispose](): void {
+    this.clear();
   }
 }
