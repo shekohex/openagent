@@ -15,7 +15,8 @@ import { setConvexModules } from "./test-utils";
  */
 
 // Set up test environment variables
-process.env.OPENAGENT_MASTER_KEY = "VStudIfC2sdNEX6WvRXhBLYmMZOvx7PID1Szvc9kMBg=";
+process.env.OPENAGENT_MASTER_KEY =
+  "VStudIfC2sdNEX6WvRXhBLYmMZOvx7PID1Szvc9kMBg=";
 
 // Load all Convex function modules using Vite's glob import
 // @ts-expect-error import.meta.glob available in Vite test
