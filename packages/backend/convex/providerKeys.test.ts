@@ -1,10 +1,10 @@
-import { convexTest } from "convex-test";
 import { describe, expect, it } from "vitest";
 import { api } from "./_generated/api";
 import schema from "./schema";
+import { createConvexTest } from "./test-utils";
 
 describe("Provider Keys", () => {
-  const t = convexTest(schema);
+  const t = createConvexTest(schema);
 
   describe("Basic CRUD Operations", () => {
     it("should create and retrieve provider keys", async () => {
