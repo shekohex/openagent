@@ -170,64 +170,65 @@ const schema = defineSchema({
     createdAt: v.number(),
     completedAt: v.optional(v.number()),
   })
-    .index("by_user", ["userId", "scheduledFor"])
-    .index("by_status", ["status", "scheduledFor"])
-    .index("by_schedule", ["scheduledFor"]),
+    .index("by_user", ["userId"])
+    .index("by_schedule", ["scheduledFor", "status"]),
 
-  rateLimits: defineTable({
-    identifier: v.string(), // userId, sessionId, IP, etc.
-    operation: v.string(), // e.g., "key_provision", "key_decrypt", "auth_attempt"
-    attempts: v.number(),
-    windowStart: v.number(),
-    windowEnd: v.number(),
-    blocked: v.boolean(),
-    lastAttempt: v.number(),
-    metadata: v.optional(
-      v.object({
-        ip: v.optional(v.string()),
-        userAgent: v.optional(v.string()),
-        sessionId: v.optional(v.string()),
-      })
-    ),
-  })
-    .index("by_identifier", ["identifier", "operation", "windowEnd"])
-    .index("by_window", ["windowEnd"])
-    .index("by_blocked", ["blocked", "windowEnd"]),
-
-  securityAuditLogs: defineTable({
+  securityMetrics: defineTable({
+    name: v.string(),
+    value: v.number(),
     timestamp: v.number(),
-    operation: v.string(),
-    userId: v.optional(v.id("users")),
-    sessionId: v.optional(v.id("sessions")),
-    provider: v.optional(v.string()),
-    success: v.boolean(),
-    severity: v.union(
-      v.literal("info"),
-      v.literal("warning"),
-      v.literal("error"),
-      v.literal("critical")
-    ),
-    errorMessage: v.optional(v.string()),
-    errorCode: v.optional(v.string()),
-    metadata: v.optional(
-      v.object({
-        ip: v.optional(v.string()),
-        userAgent: v.optional(v.string()),
-        requestId: v.optional(v.string()),
-        attemptNumber: v.optional(v.number()),
-        keyVersion: v.optional(v.number()),
-        previousValue: v.optional(v.string()),
-        newValue: v.optional(v.string()),
-      })
-    ),
-    tamperChecksum: v.optional(v.string()), // Hash of log entry for tamper detection
+    metadata: v.optional(v.any()),
   })
-    .index("by_timestamp", ["timestamp"])
-    .index("by_user", ["userId", "timestamp"])
-    .index("by_session", ["sessionId", "timestamp"])
-    .index("by_operation", ["operation", "timestamp"])
-    .index("by_severity", ["severity", "timestamp"])
-    .index("by_success", ["success", "timestamp"]),
+    .index("by_name", ["name"])
+    .index("by_timestamp", ["timestamp"]),
+
+  securityAlerts: defineTable({
+    severity: v.union(
+      v.literal("critical"),
+      v.literal("high"),
+      v.literal("medium"),
+      v.literal("low")
+    ),
+    type: v.string(),
+    message: v.string(),
+    details: v.any(),
+    timestamp: v.number(),
+    acknowledged: v.boolean(),
+    acknowledgedAt: v.optional(v.number()),
+  })
+    .index("by_type", ["type"])
+    .index("by_severity", ["severity", "acknowledged"])
+    .index("by_timestamp", ["timestamp"]),
+
+  backups: defineTable({
+    userId: v.id("users"),
+    version: v.string(),
+    createdAt: v.number(),
+    expiresAt: v.number(),
+    size: v.number(),
+    keyCount: v.number(),
+    checksum: v.string(),
+    description: v.optional(v.string()),
+    encryptedData: v.string(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_expiration", ["expiresAt"]),
+
+  performanceMetrics: defineTable({
+    operation: v.string(),
+    duration: v.number(),
+    success: v.boolean(),
+    timestamp: v.number(),
+    metadata: v.optional(v.any()),
+  })
+    .index("by_operation", ["operation"])
+    .index("by_timestamp", ["timestamp"]),
+
+  performanceCache: defineTable({
+    key: v.string(),
+    value: v.any(),
+    timestamp: v.number(),
+  }).index("by_key", ["key"]),
 });
 
 export default schema;
