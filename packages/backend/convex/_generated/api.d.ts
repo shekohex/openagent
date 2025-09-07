@@ -15,6 +15,7 @@ import type {
 } from "convex/server";
 import type * as actions_provisionKeys from "../actions/provisionKeys.js";
 import type * as actions_rotateKeys from "../actions/rotateKeys.js";
+import type * as auditLog from "../auditLog.js";
 import type * as auth from "../auth.js";
 import type * as healthCheck from "../healthCheck.js";
 import type * as http from "../http.js";
@@ -23,7 +24,9 @@ import type * as lib_crypto from "../lib/crypto.js";
 import type * as lib_envelope from "../lib/envelope.js";
 import type * as lib_keyExchange from "../lib/keyExchange.js";
 import type * as lib_keyManager from "../lib/keyManager.js";
+import type * as lib_security from "../lib/security.js";
 import type * as providerKeys from "../providerKeys.js";
+import type * as rateLimiting from "../rateLimiting.js";
 import type * as sessions from "../sessions.js";
 import type * as users_getCurrentUser from "../users/getCurrentUser.js";
 import type * as users_updateProfile from "../users/updateProfile.js";
@@ -39,6 +42,7 @@ import type * as users_updateProfile from "../users/updateProfile.js";
 declare const fullApi: ApiFromModules<{
   "actions/provisionKeys": typeof actions_provisionKeys;
   "actions/rotateKeys": typeof actions_rotateKeys;
+  auditLog: typeof auditLog;
   auth: typeof auth;
   healthCheck: typeof healthCheck;
   http: typeof http;
@@ -47,7 +51,9 @@ declare const fullApi: ApiFromModules<{
   "lib/envelope": typeof lib_envelope;
   "lib/keyExchange": typeof lib_keyExchange;
   "lib/keyManager": typeof lib_keyManager;
+  "lib/security": typeof lib_security;
   providerKeys: typeof providerKeys;
+  rateLimiting: typeof rateLimiting;
   sessions: typeof sessions;
   "users/getCurrentUser": typeof users_getCurrentUser;
   "users/updateProfile": typeof users_updateProfile;
