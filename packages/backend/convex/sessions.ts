@@ -1,10 +1,10 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, internalQuery, query } from "./_generated/server";
 import { authenticatedMutation, authenticatedQuery } from "./lib/auth";
 
 const MAX_SESSIONS_LIMIT = 50;
 
-export const getById = query({
+export const getById = internalQuery({
   args: {
     id: v.id("sessions"),
   },
@@ -24,6 +24,26 @@ export const getByIdWithToken = query({
     id: v.id("sessions"),
     token: v.string(),
   },
+  returns: v.union(
+    v.object({
+      _id: v.id("sessions"),
+      _creationTime: v.number(),
+      title: v.string(),
+      status: v.union(
+        v.literal("creating"),
+        v.literal("active"),
+        v.literal("idle"),
+        v.literal("stopped"),
+        v.literal("error")
+      ),
+      userId: v.id("users"),
+      registrationToken: v.optional(v.string()),
+      lastActivityAt: v.number(),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    }),
+    v.null()
+  ),
   handler: async (ctx, args) => {
     const session = await ctx.db.get(args.id);
 
@@ -35,7 +55,7 @@ export const getByIdWithToken = query({
   },
 });
 
-export const updateSidecarRegistration = mutation({
+export const updateSidecarRegistration = internalMutation({
   args: {
     sessionId: v.id("sessions"),
     sidecarKeyId: v.string(),
