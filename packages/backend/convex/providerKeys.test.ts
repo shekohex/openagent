@@ -12,7 +12,7 @@ describe("Provider Keys - Access Control", () => {
   });
 
   afterEach(async () => {
-    await t.finishAllScheduledFunctions();
+    await t.finishAllScheduledFunctions(() => {});
   });
 
   describe("User Isolation", () => {
@@ -76,7 +76,7 @@ describe("Provider Keys - Access Control", () => {
     });
 
     it("should require authentication for all key operations", async () => {
-      const unauthenticated = t.withIdentity(null);
+      const unauthenticated = t;
 
       await expect(
         unauthenticated.query(api.providerKeys.listUserProviderKeys)
@@ -162,7 +162,7 @@ describe("Provider Keys - Access Control", () => {
       const aliceProviders = await alice.query(
         api.providerKeys.listUserProviderKeys
       );
-      expect(aliceProviders.map((k) => k.provider).sort()).toEqual([
+      expect(aliceProviders.map((k: any) => k.provider).sort()).toEqual([
         "anthropic",
         "openai",
       ]);
@@ -170,7 +170,7 @@ describe("Provider Keys - Access Control", () => {
       const bobProviders = await bob.query(
         api.providerKeys.listUserProviderKeys
       );
-      expect(bobProviders.map((k) => k.provider)).toEqual(["google"]);
+      expect(bobProviders.map((k: any) => k.provider)).toEqual(["google"]);
     });
 
     it("should enforce tenant isolation in multi-tenant scenarios", async () => {
@@ -249,12 +249,12 @@ describe("Provider Keys - Access Control", () => {
       const userKeys = await regularUser.query(
         api.providerKeys.listUserProviderKeys
       );
-      expect(userKeys.map((k) => k.provider)).toEqual(["openai"]);
+      expect(userKeys.map((k: any) => k.provider)).toEqual(["openai"]);
 
       const adminKeys = await adminUser.query(
         api.providerKeys.listUserProviderKeys
       );
-      expect(adminKeys.map((k) => k.provider).sort()).toEqual([
+      expect(adminKeys.map((k: any) => k.provider).sort()).toEqual([
         "admin-service",
       ]);
     });
@@ -316,7 +316,7 @@ describe("Provider Keys - Access Control", () => {
 
       const keys = await user.query(api.providerKeys.listUserProviderKeys);
       expect(keys).toHaveLength(validProviders.length);
-      expect(keys.map((k) => k.provider).sort()).toEqual(validProviders.sort());
+      expect(keys.map((k: any) => k.provider).sort()).toEqual(validProviders.sort());
     });
   });
 
@@ -544,9 +544,9 @@ describe("Provider Keys - Key Rotation", () => {
       ).rejects.toThrow("Batch rotation partially failed");
 
       const keys = await user.query(api.providerKeys.listUserProviderKeys);
-      const openaiKey = keys.find((k) => k.provider === "openai");
-      const anthropicKey = keys.find((k) => k.provider === "anthropic");
-      const googleKey = keys.find((k) => k.provider === "google");
+      const openaiKey = keys.find((k: any) => k.provider === "openai");
+      const anthropicKey = keys.find((k: any) => k.provider === "anthropic");
+      const googleKey = keys.find((k: any) => k.provider === "google");
 
       expect(openaiKey?.version).toBe(2);
       expect(anthropicKey?.version).toBe(1);
@@ -617,7 +617,7 @@ describe("Provider Keys - Key Rotation", () => {
         rotationIntervalDays: 0,
       });
 
-      await t.finishAllScheduledFunctions();
+      await t.finishAllScheduledFunctions(() => {});
 
       const keys = await user.query(api.providerKeys.listUserProviderKeys);
       expect(keys[0].version).toBe(2);
