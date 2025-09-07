@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
 import { api } from "./_generated/api";
-import type { Id } from "./_generated/dataModel";
 
 const ALERT_THRESHOLD_FAILED_AUTH = 5;
 const ALERT_THRESHOLD_FAILED_DECRYPT = 3;
@@ -67,7 +66,7 @@ async function checkMetricThresholds(
   ctx: any,
   metricName: string,
   value: number
-) {
+): Promise<void> {
   const thresholds: Record<
     string,
     { limit: number; severity: SecurityAlert["severity"] }
@@ -95,7 +94,7 @@ async function checkMetricThresholds(
   // Check if we've already alerted recently
   const recentAlert = await ctx.db
     .query("securityAlerts")
-    .withIndex("by_type", (q) => q.eq("type", metricName))
+    .withIndex("by_type", (q: any) => q.eq("type", metricName))
     .order("desc")
     .first();
 
@@ -202,46 +201,43 @@ export const acknowledgeAlert = mutation({
 export const getDashboard = action({
   args: {},
   handler: async (ctx): Promise<MonitoringDashboard> => {
-    // Get recent metrics
     const metrics = await ctx.runQuery(api.monitoring.getMetrics, {
       since: Date.now() - MONITORING_WINDOW_MS,
     });
 
-    // Get active alerts
     const alerts = await ctx.runQuery(api.monitoring.getAlerts, {
       acknowledged: false,
     });
 
-    // Calculate system health
+    // Check failed operations
     const recentFailures = metrics.filter(
-      (m) => m.name.includes("failed") && m.value > 0
+      (m: any) => m.name.includes("failed") && m.value > 0
     );
 
     const encryptionHealth = recentFailures.some(
-      (m) => m.name === "failed_decrypt_operations"
+      (m: any) => m.name === "failed_decrypt_operations"
     )
       ? "unhealthy"
-      : recentFailures.some((m) => m.name === "failed_encrypt_operations")
+      : recentFailures.some((m: any) => m.name === "failed_encrypt_operations")
         ? "degraded"
         : "healthy";
 
-    const rotationHealth = recentFailures.some(
-      (m) => m.name === "key_rotation_failures"
+    const keyRotationHealth = recentFailures.some(
+      (m: any) => m.name === "key_rotation_failures"
     )
       ? "unhealthy"
       : "healthy";
 
     const authHealth = recentFailures.some(
-      (m) =>
+      (m: any) =>
         m.name === "failed_auth_attempts" &&
         m.value > ALERT_THRESHOLD_FAILED_AUTH
     )
       ? "unhealthy"
-      : recentFailures.some((m) => m.name === "failed_auth_attempts")
+      : recentFailures.some((m: any) => m.name === "failed_auth_attempts")
         ? "degraded"
         : "healthy";
 
-    // Get statistics
     const stats = await ctx.runQuery(api.monitoring.getStatistics, {});
 
     return {
@@ -249,7 +245,7 @@ export const getDashboard = action({
       alerts,
       systemHealth: {
         encryptionService: encryptionHealth,
-        keyRotationService: rotationHealth,
+        keyRotationService: keyRotationHealth,
         authenticationService: authHealth,
       },
       statistics: stats,
@@ -264,12 +260,7 @@ export const getStatistics = query({
     const totalKeys = await ctx.db.query("providerKeys").collect();
     const activeUsers = await ctx.db.query("users").collect();
 
-    const recentRotations = await ctx.db
-      .query("keyRotationAudit")
-      .withIndex("by_timestamp", (q) =>
-        q.gte("timestamp", Date.now() - 24 * 60 * 60 * 1000)
-      )
-      .collect();
+    const recentRotations = await ctx.db.query("keyRotationAudit").collect();
 
     const failedOperations = await ctx.db
       .query("securityMetrics")
@@ -311,10 +302,10 @@ export const detectAnomalies = action({
 
     // Check for unusual patterns
     const authFailures = metrics.filter(
-      (m) => m.name === "failed_auth_attempts"
+      (m: any) => m.name === "failed_auth_attempts"
     );
     const avgAuthFailures =
-      authFailures.reduce((sum, m) => sum + m.value, 0) /
+      authFailures.reduce((sum: any, m: any) => sum + m.value, 0) /
       (authFailures.length || 1);
 
     if (avgAuthFailures > ALERT_THRESHOLD_FAILED_AUTH * 2) {
@@ -327,7 +318,7 @@ export const detectAnomalies = action({
 
     // Check for encryption failures
     const encryptFailures = metrics.filter(
-      (m) => m.name === "failed_decrypt_operations"
+      (m: any) => m.name === "failed_decrypt_operations"
     );
     if (encryptFailures.length > ALERT_THRESHOLD_FAILED_DECRYPT) {
       anomalies.push({
@@ -379,7 +370,7 @@ export const createAlert = mutation({
 // Health check endpoint
 export const healthCheck = action({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<any> => {
     const dashboard = await ctx.runAction(api.monitoring.getDashboard, {});
 
     const overallHealth =
@@ -394,7 +385,7 @@ export const healthCheck = action({
           : "healthy";
 
     const criticalAlerts = dashboard.alerts.filter(
-      (a) => a.severity === "critical" && !a.acknowledged
+      (a: any) => a.severity === "critical" && !a.acknowledged
     );
 
     return {
