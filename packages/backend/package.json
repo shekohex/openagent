@@ -6,10 +6,10 @@
     "dev:setup": "convex dev --configure --until-success",
     "codegen": "convex codegen",
     "check-types": "tsc --noEmit",
-    "test": "vitest",
+    "test": "echo Please use bun test:once or test:debug",
     "test:once": "vitest run",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
-    "test:coverage": "vitest run --coverage --coverage.reporter=text"
+    "test:coverage": "vitest run --coverage --coverage.provider=istanbul --coverage.reporter=text"
   },
   "author": "",
   "license": "ISC",
@@ -22,6 +22,7 @@
   "dependencies": {
     "@auth/core": "0.37.0",
     "@convex-dev/auth": "^0.0.88",
+    "@convex-dev/rate-limiter": "^0.2.12",
     "@edge-runtime/vm": "^5.0.0",
     "convex": "^1.26.2",
     "convex-helpers": "^0.1.104",
