@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { createConvexTest } from "../test-utils/utils";
 import { api } from "./_generated/api";
 import schema from "./schema";
-import { createConvexTest } from "./test-utils";
 
 describe("Provider Keys", async () => {
   const t = await createConvexTest(schema);
