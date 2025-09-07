@@ -12,7 +12,7 @@ describe("Session Security", () => {
   });
 
   afterEach(async () => {
-    await t.finishAllScheduledFunctions();
+    await t.finishAllScheduledFunctions(() => {});
   });
 
   describe("Sidecar Registration", () => {
@@ -174,7 +174,7 @@ describe("Session Security", () => {
         sessions.map((id) => user.query(api.sessions.getById, { id }))
       );
 
-      const publicKeys = sessionData.map((s) => s.sidecarPublicKey);
+      const publicKeys = sessionData.map((s: any) => s.sidecarPublicKey);
       expect(new Set(publicKeys).size).toBe(3);
     });
 

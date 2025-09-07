@@ -12,7 +12,7 @@ describe("Security Vulnerability Tests", () => {
   });
 
   afterEach(async () => {
-    await t.finishAllScheduledFunctions();
+    await t.finishAllScheduledFunctions(() => {});
   });
 
   describe("SQL Injection Prevention", () => {
