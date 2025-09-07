@@ -9,15 +9,16 @@ export type MasterKeyProvider = {
 
 export class EnvironmentMasterKeyProvider implements MasterKeyProvider {
   private readonly envVarName: string;
-  private cachedKey?: CryptoKey;
+  // biome-ignore lint/style/useReadonlyClassProperties: false-positive see `getMasterKey` method.
+  #cachedKey?: CryptoKey;
 
   constructor(envVarName = "OPENAGENT_MASTER_KEY") {
     this.envVarName = envVarName;
   }
 
   async getMasterKey(): Promise<CryptoKey> {
-    if (this.cachedKey) {
-      return this.cachedKey;
+    if (this.#cachedKey !== undefined) {
+      return this.#cachedKey;
     }
 
     const keyString = process.env[this.envVarName];
@@ -34,8 +35,8 @@ export class EnvironmentMasterKeyProvider implements MasterKeyProvider {
     }
 
     try {
-      this.cachedKey = await importKey(keyString);
-      return this.cachedKey;
+      this.#cachedKey = await importKey(keyString);
+      return this.#cachedKey;
     } catch (error) {
       throw new CryptoError(
         `Failed to import master key from ${this.envVarName}`,

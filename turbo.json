@@ -17,6 +17,16 @@
       "cache": false,
       "persistent": true
     },
+    "test": {
+      "dependsOn": ["^build"],
+      "interactive": false,
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "test/**",
+        "!**/node_modules/**",
+        "!**/dist/**"
+      ]
+    },
     "dev": {
       "cache": false,
       "persistent": true

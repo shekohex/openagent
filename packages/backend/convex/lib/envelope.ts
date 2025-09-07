@@ -28,6 +28,17 @@ export type StoredProviderKey = {
   masterKeyId: string;
 };
 
+// Check for common weak patterns
+const weakPatterns = [
+  /^test-?key/i,
+  /^dummy-?key/i,
+  /^api-?key$/i,
+  /^secret-?key$/i,
+  /^password$/i,
+  /^123456$/,
+  /^qwerty$/i,
+];
+
 export class EnvelopeEncryption {
   private readonly keyManager: MasterKeyManager;
   private readonly currentKeyVersion = 1;
@@ -199,20 +210,10 @@ export class EnvelopeEncryption {
   }
 
   private validateKeyStrength(providerKey: string): boolean {
-    if (!providerKey || providerKey.length < 8) {
+    const MIN_PROVIDER_KEY_LENGTH = 8;
+    if (!providerKey || providerKey.length < MIN_PROVIDER_KEY_LENGTH) {
       return false;
     }
-
-    // Check for common weak patterns
-    const weakPatterns = [
-      /^test-?key/i,
-      /^dummy-?key/i,
-      /^api-?key$/i,
-      /^secret-?key$/i,
-      /^password$/i,
-      /^123456$/,
-      /^qwerty$/i,
-    ];
 
     return !weakPatterns.some((pattern) => pattern.test(providerKey));
   }
@@ -223,7 +224,9 @@ export class EnvelopeEncryption {
     return {
       addBuffer: (buffer: SecureBuffer) => buffers.push(buffer),
       cleanup: () => {
-        buffers.forEach((buffer) => buffer.clear());
+        for (const buffer of buffers) {
+          buffer.clear();
+        }
       },
     };
   }

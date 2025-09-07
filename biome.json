@@ -20,7 +20,8 @@
       "!**/.alchemy",
       "!**/wrangler.jsonc",
       "!**/.source",
-      "!**/tsconfig.json"
+      "!**/tsconfig.json",
+      "!**/*.test.ts"
     ]
   },
   "linter": {
