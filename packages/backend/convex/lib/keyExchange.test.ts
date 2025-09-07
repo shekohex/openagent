@@ -1,11 +1,11 @@
-import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
-import {
-  KeyExchange,
-  SecureProviderKeyDelivery,
-  type EphemeralKeyPair,
-  type SealedPayload,
-} from "./keyExchange";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CryptoError } from "./crypto";
+import {
+  type EphemeralKeyPair,
+  KeyExchange,
+  type SealedPayload,
+  SecureProviderKeyDelivery,
+} from "./keyExchange";
 
 describe("ECDH Key Exchange", () => {
   describe("Ephemeral Key Generation", () => {
@@ -255,7 +255,7 @@ describe("ECDH Key Exchange", () => {
     });
 
     it("should handle large messages", async () => {
-      const largeMessage = "X".repeat(10000);
+      const largeMessage = "X".repeat(10_000);
       const sealed = await KeyExchange.sealMessage(
         largeMessage,
         bob.publicKey,

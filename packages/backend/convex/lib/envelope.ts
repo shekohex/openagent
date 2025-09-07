@@ -6,15 +6,9 @@ import {
   exportKey,
   generateDataKey,
   importKey,
+  SecureBuffer,
 } from "./crypto";
 import { getDefaultKeyManager, type MasterKeyManager } from "./keyManager";
-import {
-  createSecureOperation,
-  cryptoOperationsRateLimit,
-  logSecurityEvent,
-  SecureBuffer,
-  validateKeyStrength,
-} from "./security";
 
 export type EnvelopeEncryptionResult = {
   encryptedData: EncryptionResult;
@@ -43,8 +37,8 @@ export class EnvelopeEncryption {
   }
 
   async encryptProviderKey(providerKey: string): Promise<StoredProviderKey> {
-    if (!validateKeyStrength(providerKey)) {
-      logSecurityEvent({
+    if (!this.validateKeyStrength(providerKey)) {
+      console.log("Security event: Weak provider key detected", {
         operation: "encrypt_provider_key",
         success: false,
         error: "Weak provider key detected",
@@ -52,22 +46,10 @@ export class EnvelopeEncryption {
       throw new CryptoError("Provider key does not meet security requirements");
     }
 
-    const rateLimit = cryptoOperationsRateLimit.checkLimit(
-      "encrypt_provider_key"
-    );
-    if (!rateLimit.allowed) {
-      logSecurityEvent({
-        operation: "encrypt_provider_key",
-        success: false,
-        error: "Rate limit exceeded",
-      });
-      throw new CryptoError("Rate limit exceeded for encryption operations");
-    }
-
-    const operation = createSecureOperation();
+    const operation = this.createSecureOperation();
 
     try {
-      const keyBuffer = SecureBuffer.fromString(providerKey);
+      const keyBuffer = new SecureBuffer(providerKey);
       operation.addBuffer(keyBuffer);
 
       const dataKey = await generateDataKey();
@@ -76,7 +58,7 @@ export class EnvelopeEncryption {
       const encryptedData = await encryptWithKey(dataKey, providerKey);
 
       const dataKeyRaw = await exportKey(dataKey);
-      const dataKeyBuffer = SecureBuffer.fromString(dataKeyRaw);
+      const dataKeyBuffer = new SecureBuffer(dataKeyRaw);
       operation.addBuffer(dataKeyBuffer);
 
       const encryptedDataKey = await encryptWithKey(masterKey, dataKeyRaw);
@@ -92,7 +74,7 @@ export class EnvelopeEncryption {
         masterKeyId: this.keyManager.getKeyId(),
       };
 
-      logSecurityEvent({
+      console.log("Security event: Provider key encrypted successfully", {
         operation: "encrypt_provider_key",
         success: true,
         metadata: { keyVersion: this.currentKeyVersion },
@@ -100,7 +82,7 @@ export class EnvelopeEncryption {
 
       return result;
     } catch (error) {
-      logSecurityEvent({
+      console.log("Security event: Provider key encryption failed", {
         operation: "encrypt_provider_key",
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -112,23 +94,11 @@ export class EnvelopeEncryption {
   }
 
   async decryptProviderKey(storedKey: StoredProviderKey): Promise<string> {
-    const rateLimit = cryptoOperationsRateLimit.checkLimit(
-      "decrypt_provider_key"
-    );
-    if (!rateLimit.allowed) {
-      logSecurityEvent({
-        operation: "decrypt_provider_key",
-        success: false,
-        error: "Rate limit exceeded",
-      });
-      throw new CryptoError("Rate limit exceeded for decryption operations");
-    }
-
-    const operation = createSecureOperation();
+    const operation = this.createSecureOperation();
 
     try {
       if (storedKey.keyVersion !== this.currentKeyVersion) {
-        logSecurityEvent({
+        console.log("Security event: Unsupported key version", {
           operation: "decrypt_provider_key",
           success: false,
           error: `Unsupported key version: ${storedKey.keyVersion}`,
@@ -150,7 +120,7 @@ export class EnvelopeEncryption {
         masterKey,
         encryptedDataKeyResult
       );
-      const dataKeyBuffer = SecureBuffer.fromString(dataKeyRaw);
+      const dataKeyBuffer = new SecureBuffer(dataKeyRaw);
       operation.addBuffer(dataKeyBuffer);
 
       const dataKey = await importKey(dataKeyRaw);
@@ -165,10 +135,10 @@ export class EnvelopeEncryption {
         dataKey,
         encryptedProviderKeyResult
       );
-      const keyBuffer = SecureBuffer.fromString(decryptedKey);
+      const keyBuffer = new SecureBuffer(decryptedKey);
       operation.addBuffer(keyBuffer);
 
-      logSecurityEvent({
+      console.log("Security event: Provider key decrypted successfully", {
         operation: "decrypt_provider_key",
         success: true,
         metadata: { keyVersion: storedKey.keyVersion },
@@ -176,7 +146,7 @@ export class EnvelopeEncryption {
 
       return decryptedKey;
     } catch (error) {
-      logSecurityEvent({
+      console.log("Security event: Provider key decryption failed", {
         operation: "decrypt_provider_key",
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -226,6 +196,36 @@ export class EnvelopeEncryption {
         storedKey[field] !== undefined &&
         storedKey[field] !== null
     );
+  }
+
+  private validateKeyStrength(providerKey: string): boolean {
+    if (!providerKey || providerKey.length < 8) {
+      return false;
+    }
+
+    // Check for common weak patterns
+    const weakPatterns = [
+      /^test-?key/i,
+      /^dummy-?key/i,
+      /^api-?key$/i,
+      /^secret-?key$/i,
+      /^password$/i,
+      /^123456$/,
+      /^qwerty$/i,
+    ];
+
+    return !weakPatterns.some((pattern) => pattern.test(providerKey));
+  }
+
+  private createSecureOperation() {
+    const buffers: SecureBuffer[] = [];
+
+    return {
+      addBuffer: (buffer: SecureBuffer) => buffers.push(buffer),
+      cleanup: () => {
+        buffers.forEach((buffer) => buffer.clear());
+      },
+    };
   }
 
   getCurrentKeyVersion(): number {

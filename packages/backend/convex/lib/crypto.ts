@@ -197,7 +197,6 @@ export function clearString(str: string): void {
     buffer.fill(0);
 
     // Force garbage collection hint (not guaranteed but helps)
-    // @ts-ignore - str reassignment for memory clearing
     str = "";
   } catch {
     // Silent fail - best effort memory clearing

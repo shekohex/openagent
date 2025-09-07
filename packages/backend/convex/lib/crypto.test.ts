@@ -1,9 +1,8 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  CryptoError,
-  SecureBuffer,
   base64ToUint8Array,
   base64UrlToUint8Array,
+  CryptoError,
   clearString,
   decryptWithKey,
   encryptWithKey,
@@ -12,6 +11,7 @@ import {
   generateRandomBytes,
   generateSecureNonce,
   importKey,
+  SecureBuffer,
   uint8ArrayToBase64,
   uint8ArrayToBase64Url,
   zeroMemory,
@@ -159,7 +159,7 @@ describe("Cryptographic Operations", () => {
     });
 
     it("should handle large data", async () => {
-      const largeText = "X".repeat(10000);
+      const largeText = "X".repeat(10_000);
       const encrypted = await encryptWithKey(testKey, largeText);
       const decrypted = await decryptWithKey(testKey, encrypted);
       expect(decrypted).toBe(largeText);
