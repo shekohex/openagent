@@ -200,6 +200,42 @@ const schema = defineSchema({
     .index("by_severity", ["severity", "acknowledged"])
     .index("by_timestamp", ["timestamp"]),
 
+  securityAuditLogs: defineTable({
+    timestamp: v.number(),
+    operation: v.string(),
+    userId: v.optional(v.id("users")),
+    sessionId: v.optional(v.id("sessions")),
+    provider: v.optional(v.string()),
+    success: v.boolean(),
+    severity: v.union(
+      v.literal("info"),
+      v.literal("warning"),
+      v.literal("error"),
+      v.literal("critical")
+    ),
+    errorMessage: v.optional(v.string()),
+    errorCode: v.optional(v.string()),
+    metadata: v.optional(v.any()),
+    tamperChecksum: v.string(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_session", ["sessionId"])
+    .index("by_operation", ["operation"])
+    .index("by_severity", ["severity"])
+    .index("by_success", ["success"])
+    .index("by_timestamp", ["timestamp"]),
+
+  auditLog: defineTable({
+    operation: v.string(),
+    userId: v.optional(v.id("users")),
+    timestamp: v.number(),
+    success: v.boolean(),
+    metadata: v.optional(v.any()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_operation", ["operation"])
+    .index("by_timestamp", ["timestamp"]),
+
   backups: defineTable({
     userId: v.id("users"),
     version: v.string(),
@@ -229,6 +265,18 @@ const schema = defineSchema({
     value: v.any(),
     timestamp: v.number(),
   }).index("by_key", ["key"]),
+
+  rateLimits: defineTable({
+    identifier: v.string(),
+    operation: v.string(),
+    attempts: v.number(),
+    windowStart: v.number(),
+    windowEnd: v.number(),
+    blocked: v.boolean(),
+    lastAttemptAt: v.number(),
+  })
+    .index("by_identifier", ["identifier", "operation"])
+    .index("by_window", ["windowEnd"]),
 });
 
 export default schema;
