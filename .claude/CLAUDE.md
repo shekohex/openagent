@@ -1,7 +1,3 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
 OpenAgent is a background coding agent that runs remotely in sandboxed containers using OpenCode SDK as its backbone. The project uses a modern TypeScript monorepo architecture with React frontend, Convex backend, and per-session sidecar services.
