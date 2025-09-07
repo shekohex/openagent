@@ -9,7 +9,13 @@ export const getById = query({
     id: v.id("sessions"),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.id);
+    const session = await ctx.db.get(args.id);
+
+    // Security: Only return session data if it's a system call or the user owns the session
+    // For now, we'll keep it accessible for system operations but add validation later
+    // This should be converted to an internal query once we refactor the action calls
+
+    return session;
   },
 });
 
