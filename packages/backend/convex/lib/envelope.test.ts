@@ -23,8 +23,9 @@ describe("Envelope Encryption", () => {
     mockKeyManager = {
       getMasterKey: vi.fn().mockResolvedValue(masterKey),
       getKeyId: vi.fn().mockReturnValue("test-master-key-id"),
-      rotateKey: vi.fn(),
-    };
+      provider: null as any,
+      setProvider: vi.fn(),
+    } as any;
 
     envelope = new EnvelopeEncryption(mockKeyManager);
 

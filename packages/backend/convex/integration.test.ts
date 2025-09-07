@@ -28,7 +28,7 @@ describe("Integration Tests - End-to-End Workflows", () => {
       // Step 2: Verify keys are stored
       const keys = await user.query(api.providerKeys.listUserProviderKeys);
       expect(keys).toHaveLength(2);
-      expect(keys.map((k) => k.provider).sort()).toEqual([
+      expect(keys.map((k: any) => k.provider).sort()).toEqual([
         "anthropic",
         "openai",
       ]);
