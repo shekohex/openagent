@@ -30,7 +30,6 @@ const schema = defineSchema({
     sidecarPublicKey: v.optional(v.string()),
     orchestratorPublicKey: v.optional(v.string()),
     orchestratorKeyId: v.optional(v.string()),
-    orchestratorPrivateKey: v.optional(v.string()),
     registeredAt: v.optional(v.number()),
     lastActivityAt: v.number(),
     createdAt: v.number(),
@@ -77,10 +76,27 @@ const schema = defineSchema({
   pendingPermissions: defineTable({
     sessionId: v.id("sessions"),
     permissionId: v.string(),
-    payload: v.any(),
+    payload: v.object({
+      type: v.string(),
+      action: v.string(),
+      resource: v.optional(v.string()),
+      data: v.optional(
+        v.object({
+          path: v.optional(v.string()),
+          content: v.optional(v.string()),
+          permissions: v.optional(v.array(v.string())),
+        })
+      ),
+    }),
     createdAt: v.number(),
     resolvedAt: v.optional(v.number()),
-    response: v.optional(v.any()),
+    response: v.optional(
+      v.object({
+        granted: v.boolean(),
+        reason: v.optional(v.string()),
+        expiresAt: v.optional(v.number()),
+      })
+    ),
   })
     .index("by_session", ["sessionId", "createdAt"])
     .index("by_permission", ["permissionId"]),
@@ -94,7 +110,17 @@ const schema = defineSchema({
       v.literal("storage")
     ),
     quantity: v.number(),
-    meta: v.optional(v.any()),
+    meta: v.optional(
+      v.object({
+        model: v.optional(v.string()),
+        provider: v.optional(v.string()),
+        inputTokens: v.optional(v.number()),
+        outputTokens: v.optional(v.number()),
+        duration: v.optional(v.number()),
+        storageType: v.optional(v.string()),
+        storageSize: v.optional(v.number()),
+      })
+    ),
     createdAt: v.number(),
   })
     .index("by_session", ["sessionId", "createdAt"])
@@ -147,6 +173,61 @@ const schema = defineSchema({
     .index("by_user", ["userId", "scheduledFor"])
     .index("by_status", ["status", "scheduledFor"])
     .index("by_schedule", ["scheduledFor"]),
+
+  rateLimits: defineTable({
+    identifier: v.string(), // userId, sessionId, IP, etc.
+    operation: v.string(), // e.g., "key_provision", "key_decrypt", "auth_attempt"
+    attempts: v.number(),
+    windowStart: v.number(),
+    windowEnd: v.number(),
+    blocked: v.boolean(),
+    lastAttempt: v.number(),
+    metadata: v.optional(
+      v.object({
+        ip: v.optional(v.string()),
+        userAgent: v.optional(v.string()),
+        sessionId: v.optional(v.string()),
+      })
+    ),
+  })
+    .index("by_identifier", ["identifier", "operation", "windowEnd"])
+    .index("by_window", ["windowEnd"])
+    .index("by_blocked", ["blocked", "windowEnd"]),
+
+  securityAuditLogs: defineTable({
+    timestamp: v.number(),
+    operation: v.string(),
+    userId: v.optional(v.id("users")),
+    sessionId: v.optional(v.id("sessions")),
+    provider: v.optional(v.string()),
+    success: v.boolean(),
+    severity: v.union(
+      v.literal("info"),
+      v.literal("warning"),
+      v.literal("error"),
+      v.literal("critical")
+    ),
+    errorMessage: v.optional(v.string()),
+    errorCode: v.optional(v.string()),
+    metadata: v.optional(
+      v.object({
+        ip: v.optional(v.string()),
+        userAgent: v.optional(v.string()),
+        requestId: v.optional(v.string()),
+        attemptNumber: v.optional(v.number()),
+        keyVersion: v.optional(v.number()),
+        previousValue: v.optional(v.string()),
+        newValue: v.optional(v.string()),
+      })
+    ),
+    tamperChecksum: v.optional(v.string()), // Hash of log entry for tamper detection
+  })
+    .index("by_timestamp", ["timestamp"])
+    .index("by_user", ["userId", "timestamp"])
+    .index("by_session", ["sessionId", "timestamp"])
+    .index("by_operation", ["operation", "timestamp"])
+    .index("by_severity", ["severity", "timestamp"])
+    .index("by_success", ["success", "timestamp"]),
 });
 
 export default schema;
