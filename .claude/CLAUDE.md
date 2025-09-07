@@ -23,19 +23,6 @@ bun check                    # Run Biome linting and formatting (via Ultracite)
 npx ultracite fix            # Auto-fix code issues
 ```
 
-## Code Quality Standards
-
-### Ultracite Configuration
-
-This project uses Ultracite (extends Biome) for strict type safety and code quality.
-
-### Key Principles
-
-- Zero configuration required
-- Subsecond performance
-- Maximum type safety
-- AI-friendly code generation
-
 ### Before Writing Code
 
 1. Analyze existing patterns in the codebase
@@ -358,3 +345,7 @@ try {
   console.log(e);
 }
 ```
+
+## Convex Section
+
+Follow the guidelines in @./CONVEX.md
