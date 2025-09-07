@@ -1,8 +1,7 @@
 import { v } from "convex/values";
-import { internal } from "./_generated/api";
-import { action, internalMutation, internalQuery } from "./_generated/server";
+import { internalMutation, internalQuery } from "./_generated/server";
 import {
-  authenticatedInternalAction,
+  authenticatedInternalMutation,
   authenticatedMutation,
   authenticatedQuery,
 } from "./lib/auth";
@@ -201,33 +200,47 @@ export const deleteProviderKey = authenticatedMutation({
   },
 });
 
-export const getProviderKey = authenticatedInternalAction({
+export const getProviderKey = authenticatedInternalMutation({
   args: {
     provider: v.string(),
   },
+  returns: v.union(v.string(), v.null()),
   handler: async (ctx, args) => {
     validateProviderName(args.provider);
 
     const normalizedProvider = args.provider.trim().toLowerCase();
-    const key = await ctx.runQuery(
-      internal.providerKeys.getEncryptedProviderKey,
-      {
-        userId: ctx.userId,
-        provider: normalizedProvider,
-      }
-    );
+
+    // Get the encrypted key directly from database
+    const key = await ctx.db
+      .query("providerKeys")
+      .withIndex("by_provider", (q) =>
+        q.eq("userId", ctx.userId).eq("provider", normalizedProvider)
+      )
+      .unique();
 
     if (!key) {
       return null;
     }
 
     try {
+      // Decrypt the key using envelope encryption (Web Crypto API)
       const envelope = getDefaultEnvelopeEncryption();
-      const decryptedKey = await envelope.decryptProviderKey(key);
+      const storedKey = {
+        encryptedKey: key.encryptedKey,
+        encryptedDataKey: key.encryptedDataKey,
+        keyVersion: key.keyVersion,
+        nonce: key.nonce,
+        tag: key.tag,
+        dataKeyNonce: key.dataKeyNonce,
+        dataKeyTag: key.dataKeyTag,
+        masterKeyId: key.masterKeyId,
+      };
 
-      await ctx.runMutation(internal.providerKeys.updateLastUsed, {
-        userId: ctx.userId,
-        provider: normalizedProvider,
+      const decryptedKey = await envelope.decryptProviderKey(storedKey);
+
+      // Update last used timestamp
+      await ctx.db.patch(key._id, {
+        lastUsedAt: Date.now(),
       });
 
       return decryptedKey;
@@ -287,31 +300,6 @@ export const updateLastUsed = internalMutation({
       await ctx.db.patch(key._id, {
         lastUsedAt: Date.now(),
       });
-    }
-  },
-});
-
-export const getKnownProviders = action({
-  args: {},
-  handler: async (): Promise<string[]> => {
-    try {
-      const response = await fetch("https://models.dev/api.json");
-      if (!response.ok) {
-        throw new Error("Failed to fetch providers");
-      }
-
-      const data = await response.json();
-      return Object.keys(data).sort();
-    } catch {
-      return [
-        "openai",
-        "anthropic",
-        "google",
-        "openrouter",
-        "groq",
-        "togetherai",
-        "mistral",
-      ];
     }
   },
 });
