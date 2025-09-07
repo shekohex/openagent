@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
 import { api } from "./_generated/api";
-import type { Id } from "./_generated/dataModel";
 
 // Performance configuration
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -120,7 +119,7 @@ export const batchEncryptKeys = action({
       })
     ),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any> => {
     const results = [];
     const batches = [];
 
@@ -131,7 +130,7 @@ export const batchEncryptKeys = action({
 
     // Process batches with limited concurrency
     for (const batch of batches) {
-      const batchPromises = batch.map(async (keyData) => {
+      const batchPromises = batch.map(async (keyData): Promise<any> => {
         const startTime = Date.now();
         try {
           // This would call the actual encryption logic
@@ -177,7 +176,7 @@ export const getCachedProviderKey = action({
     userId: v.id("users"),
     provider: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any> => {
     const cacheKey = `${args.userId}:${args.provider}`;
 
     // Check cache first
@@ -289,14 +288,17 @@ export const analyzePerformance = action({
     }
 
     // Check cache hit rates
-    const cacheOps = stats.filter((s) => s.operation.includes("cache"));
-    const nonCacheOps = stats.filter((s) => !s.operation.includes("cache"));
+    const cacheOps = stats.filter((s: any) => s.operation.includes("cache"));
+    const nonCacheOps = stats.filter(
+      (s: any) => !s.operation.includes("cache")
+    );
 
     if (cacheOps.length > 0 && nonCacheOps.length > 0) {
       const avgCacheTime =
-        cacheOps.reduce((sum, s) => sum + s.averageTime, 0) / cacheOps.length;
+        cacheOps.reduce((sum: any, s: any) => sum + s.averageTime, 0) /
+        cacheOps.length;
       const avgNonCacheTime =
-        nonCacheOps.reduce((sum, s) => sum + s.averageTime, 0) /
+        nonCacheOps.reduce((sum: any, s: any) => sum + s.averageTime, 0) /
         nonCacheOps.length;
 
       if (avgNonCacheTime > avgCacheTime * 3) {
@@ -310,7 +312,7 @@ export const analyzePerformance = action({
     }
 
     // Check for operations that could be batched
-    const highFreqOps = stats.filter((s) => s.sampleSize > 100);
+    const highFreqOps = stats.filter((s: any) => s.sampleSize > 100);
     for (const op of highFreqOps) {
       if (!op.operation.includes("batch")) {
         suggestions.push({
@@ -368,13 +370,13 @@ export const optimizedBatchRotation = action({
     providers: v.optional(v.array(v.string())),
     newKeyVersion: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any> => {
     const startTime = Date.now();
 
     // Get all keys to rotate
     const keys = await ctx.runQuery(api.providerKeys.listUserProviderKeys, {});
     const keysToRotate = args.providers
-      ? keys.filter((k) => args.providers!.includes(k.provider))
+      ? keys.filter((k: any) => args.providers!.includes(k.provider))
       : keys;
 
     if (keysToRotate.length === 0) {
@@ -385,7 +387,7 @@ export const optimizedBatchRotation = action({
     const results = [];
     for (let i = 0; i < keysToRotate.length; i += MAX_CONCURRENT_OPERATIONS) {
       const batch = keysToRotate.slice(i, i + MAX_CONCURRENT_OPERATIONS);
-      const batchPromises = batch.map((key) =>
+      const batchPromises = batch.map((key: any) =>
         ctx.runAction(api.actions.rotateKeys.rotateProviderKey, {
           userId: args.userId,
           provider: key.provider,

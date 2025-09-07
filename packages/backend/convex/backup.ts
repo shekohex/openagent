@@ -1,13 +1,10 @@
 import { v } from "convex/values";
-import { mutation, query, action } from "./_generated/server";
-import { api } from "./_generated/api";
+import { mutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { authenticatedMutation, authenticatedQuery } from "./lib/auth";
 import { getDefaultEnvelopeEncryption } from "./lib/envelope";
-import { CryptoError } from "./lib/crypto";
 
 const BACKUP_RETENTION_DAYS = 30;
-const MAX_BACKUP_SIZE_MB = 100;
 const BACKUP_VERSION = "1.0.0";
 
 export type BackupMetadata = {

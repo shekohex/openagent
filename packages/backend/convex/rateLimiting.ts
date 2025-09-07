@@ -60,10 +60,7 @@ export const checkRateLimit = mutation({
     const existing = await ctx.db
       .query("rateLimits")
       .withIndex("by_identifier", (q) =>
-        q
-          .eq("identifier", args.identifier)
-          .eq("operation", args.operation)
-          .gte("windowEnd", now)
+        q.eq("identifier", args.identifier).eq("operation", args.operation)
       )
       .first();
 
@@ -88,8 +85,7 @@ export const checkRateLimit = mutation({
         windowStart: now,
         windowEnd,
         blocked: false,
-        lastAttempt: now,
-        metadata: args.metadata,
+        lastAttemptAt: now,
       });
 
       return {
@@ -114,7 +110,7 @@ export const checkRateLimit = mutation({
       await ctx.db.patch(existing._id, {
         blocked: true,
         windowEnd: blockEnd,
-        lastAttempt: now,
+        lastAttemptAt: now,
         attempts: existing.attempts + 1,
       });
 
@@ -129,7 +125,7 @@ export const checkRateLimit = mutation({
     // Increment attempts
     await ctx.db.patch(existing._id, {
       attempts: existing.attempts + 1,
-      lastAttempt: now,
+      lastAttemptAt: now,
     });
 
     return {
@@ -177,10 +173,7 @@ export const getRateLimitStatus = query({
     const record = await ctx.db
       .query("rateLimits")
       .withIndex("by_identifier", (q) =>
-        q
-          .eq("identifier", args.identifier)
-          .eq("operation", args.operation)
-          .gte("windowEnd", now)
+        q.eq("identifier", args.identifier).eq("operation", args.operation)
       )
       .first();
 
@@ -239,9 +232,7 @@ export const getBlockedIdentifiers = query({
 
     const blocked = await ctx.db
       .query("rateLimits")
-      .withIndex("by_blocked", (q) =>
-        q.eq("blocked", true).gte("windowEnd", now)
-      )
+      .withIndex("by_window", (q) => q.gte("windowEnd", now))
       .take(limit);
 
     return blocked.map((record) => ({
@@ -249,8 +240,7 @@ export const getBlockedIdentifiers = query({
       operation: record.operation,
       attempts: record.attempts,
       blockedUntil: record.windowEnd,
-      lastAttempt: record.lastAttempt,
-      metadata: record.metadata,
+      lastAttempt: record.lastAttemptAt,
     }));
   },
 });
