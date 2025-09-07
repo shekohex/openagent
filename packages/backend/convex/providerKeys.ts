@@ -1,4 +1,6 @@
+import { HOUR, RateLimiter } from "@convex-dev/rate-limiter";
 import { v } from "convex/values";
+import { components } from "./_generated/api";
 import { internalMutation, internalQuery } from "./_generated/server";
 import {
   authenticatedInternalMutation,
@@ -12,6 +14,28 @@ const MAX_PROVIDER_NAME_LENGTH = 50;
 const MIN_PROVIDER_KEY_LENGTH = 8;
 const MAX_PROVIDER_KEY_LENGTH = 1000;
 const PROVIDER_NAME_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;
+
+const rateLimiter = new RateLimiter(components.rateLimiter, {
+  // Key management operations - balanced for security and usability
+  upsertProviderKey: {
+    kind: "token bucket",
+    rate: 30, // Allow setup of multiple keys
+    period: HOUR,
+    capacity: 5, // Allow small bursts for initial setup
+  },
+  deleteProviderKey: {
+    kind: "token bucket",
+    rate: 20, // Deletion is less common
+    period: HOUR,
+    capacity: 3,
+  },
+  getProviderKey: {
+    kind: "token bucket",
+    rate: 5000, // High limit - this is for actual API usage
+    period: HOUR,
+    capacity: 50, // Allow bursts for batch operations
+  },
+});
 
 function validateProviderName(provider: string): void {
   if (!provider || typeof provider !== "string") {
@@ -82,6 +106,11 @@ export const upsertProviderKey = authenticatedMutation({
     key: v.string(),
   },
   handler: async (ctx, args) => {
+    await rateLimiter.limit(ctx, "upsertProviderKey", {
+      key: ctx.userId,
+      throws: true,
+    });
+
     validateProviderName(args.provider);
 
     if (!args.key || args.key.trim().length === 0) {
@@ -181,6 +210,11 @@ export const deleteProviderKey = authenticatedMutation({
     provider: v.string(),
   },
   handler: async (ctx, args) => {
+    await rateLimiter.limit(ctx, "deleteProviderKey", {
+      key: ctx.userId,
+      throws: true,
+    });
+
     validateProviderName(args.provider);
 
     const normalizedProvider = args.provider.trim().toLowerCase();
@@ -206,6 +240,11 @@ export const getProviderKey = authenticatedInternalMutation({
   },
   returns: v.union(v.string(), v.null()),
   handler: async (ctx, args) => {
+    await rateLimiter.limit(ctx, "getProviderKey", {
+      key: ctx.userId,
+      throws: true,
+    });
+
     validateProviderName(args.provider);
 
     const normalizedProvider = args.provider.trim().toLowerCase();
