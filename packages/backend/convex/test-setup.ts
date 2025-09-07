@@ -14,6 +14,9 @@ import { setConvexModules } from "./test-utils";
  * This setup eliminates the need to manually pass import.meta.glob in every test file.
  */
 
+// Set up test environment variables
+process.env.OPENAGENT_MASTER_KEY = "VStudIfC2sdNEX6WvRXhBLYmMZOvx7PID1Szvc9kMBg=";
+
 // Load all Convex function modules using Vite's glob import
 // @ts-expect-error import.meta.glob available in Vite test
 const modules = import.meta.glob("./**/*.*s");
