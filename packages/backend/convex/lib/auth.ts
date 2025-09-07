@@ -5,7 +5,12 @@ import {
   customMutation,
   customQuery,
 } from "convex-helpers/server/customFunctions";
-import { action, mutation, query } from "../_generated/server";
+import {
+  action,
+  internalMutation,
+  mutation,
+  query,
+} from "../_generated/server";
 
 export const authenticatedQuery = customQuery(
   query,
@@ -39,6 +44,17 @@ export const authenticatedMutation = customMutation(
 
 export const authenticatedInternalAction = customAction(
   action,
+  customCtx(async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not authenticated");
+    }
+    return { userId };
+  })
+);
+
+export const authenticatedInternalMutation = customMutation(
+  internalMutation,
   customCtx(async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
