@@ -1,10 +1,11 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import {
+  customAction,
   customCtx,
   customMutation,
   customQuery,
 } from "convex-helpers/server/customFunctions";
-import { mutation, query } from "../_generated/server";
+import { action, mutation, query } from "../_generated/server";
 
 export const authenticatedQuery = customQuery(
   query,
@@ -33,5 +34,16 @@ export const authenticatedMutation = customMutation(
       throw new Error("User not found");
     }
     return { user, userId };
+  })
+);
+
+export const authenticatedInternalAction = customAction(
+  action,
+  customCtx(async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not authenticated");
+    }
+    return { userId };
   })
 );
