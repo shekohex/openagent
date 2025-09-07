@@ -1,13 +1,13 @@
 import { v } from "convex/values";
-import { api, internal } from "../_generated/api";
-import type { Id } from "../_generated/dataModel";
-import { action } from "../_generated/server";
-import { CryptoError } from "../lib/crypto";
+import { api, internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
+import { internalMutation } from "./_generated/server";
+import { CryptoError } from "./lib/crypto";
 import {
   KeyExchange,
   type SealedPayload,
   SecureProviderKeyDelivery,
-} from "../lib/keyExchange";
+} from "./lib/keyExchange";
 
 const MILLISECONDS_PER_SECOND = 1000;
 const MAX_TOKEN_AGE_MS = 24 * 60 * 60 * MILLISECONDS_PER_SECOND; // 24 hours
@@ -27,48 +27,30 @@ export type ProvisioningResult = {
   providersCount?: number;
 };
 
-export const registerSidecar = action({
+export const registerSidecar = internalMutation({
   args: {
     sessionId: v.id("sessions"),
     registrationToken: v.string(),
     sidecarPublicKey: v.string(),
     sidecarKeyId: v.string(),
   },
+  returns: v.object({
+    success: v.boolean(),
+    sealedKeys: v.optional(
+      v.object({
+        ciphertext: v.string(),
+        nonce: v.string(),
+        tag: v.string(),
+        recipientKeyId: v.string(),
+      })
+    ),
+    sidecarToken: v.optional(v.string()),
+    error: v.optional(v.string()),
+    providersCount: v.optional(v.number()),
+  }),
   handler: async (ctx, args): Promise<ProvisioningResult> => {
-    // TODO: Check rate limit using persistent storage
-    // const rateLimit = await ctx.runMutation(
-    //   api.rateLimiting.checkRateLimit,
-    //   {
-    //     identifier: args.sessionId,
-    //     operation: "key_provision",
-    //     metadata: {
-    //       sessionId: args.sessionId,
-    //     },
-    //   }
-    // );
-
-    // if (!rateLimit.allowed) {
-    //   logSecurityEvent({
-    //     operation: "register_sidecar",
-    //     sessionId: args.sessionId,
-    //     success: false,
-    //     error: rateLimit.reason || "Rate limit exceeded",
-    //   });
-    //   return {
-    //     success: false,
-    //     error:
-    //       rateLimit.reason || "Rate limit exceeded for key provisioning operations",
-    //   };
-    // }
-
     try {
       if (!KeyExchange.validatePublicKey(args.sidecarPublicKey)) {
-        console.log("Security event: Invalid sidecar public key format", {
-          operation: "register_sidecar",
-          sessionId: args.sessionId,
-          success: false,
-          error: "Invalid sidecar public key format",
-        });
         return {
           success: false,
           error: "Invalid sidecar public key format",
@@ -76,12 +58,6 @@ export const registerSidecar = action({
       }
 
       if (!KeyExchange.validateKeyId(args.sidecarKeyId)) {
-        console.log("Security event: Invalid sidecar key ID format", {
-          operation: "register_sidecar",
-          sessionId: args.sessionId,
-          success: false,
-          error: "Invalid sidecar key ID format",
-        });
         return {
           success: false,
           error: "Invalid sidecar key ID format",
@@ -122,10 +98,11 @@ export const registerSidecar = action({
       const decryptedKeys = new Map<string, string>();
       let _failedKeys = 0;
 
+      // Get decrypted provider keys by calling the internal action
       for (const keyInfo of userProviderKeys) {
         try {
-          const decryptedKey = await ctx.runAction(
-            api.providerKeys.getProviderKey,
+          const decryptedKey = await ctx.runMutation(
+            internal.providerKeys.getProviderKey,
             {
               provider: keyInfo.provider,
             }
@@ -191,12 +168,25 @@ export const registerSidecar = action({
   },
 });
 
-export const refreshProviderKeys = action({
+export const refreshProviderKeys = internalMutation({
   args: {
     sessionId: v.id("sessions"),
     sidecarToken: v.string(),
     providers: v.optional(v.array(v.string())),
   },
+  returns: v.object({
+    success: v.boolean(),
+    sealedKeys: v.optional(
+      v.object({
+        ciphertext: v.string(),
+        nonce: v.string(),
+        tag: v.string(),
+        recipientKeyId: v.string(),
+      })
+    ),
+    error: v.optional(v.string()),
+    providersCount: v.optional(v.number()),
+  }),
   handler: async (ctx, args): Promise<ProvisioningResult> => {
     try {
       const isValidToken = validateSidecarToken(
@@ -228,9 +218,7 @@ export const refreshProviderKeys = action({
       );
 
       const relevantKeys = args.providers
-        ? userKeys.filter((key: any) =>
-            providersToRefresh.includes(key.provider)
-          )
+        ? userKeys.filter((key) => providersToRefresh.includes(key.provider))
         : userKeys;
 
       if (relevantKeys.length === 0) {
@@ -244,8 +232,8 @@ export const refreshProviderKeys = action({
 
       for (const keyInfo of relevantKeys) {
         try {
-          const decryptedKey = await ctx.runAction(
-            api.providerKeys.getProviderKey,
+          const decryptedKey = await ctx.runMutation(
+            internal.providerKeys.getProviderKey,
             {
               provider: keyInfo.provider,
             }
