@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { api } from "../_generated/api";
+import { api, internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 import { action } from "../_generated/server";
 import { CryptoError } from "../lib/crypto";
@@ -8,7 +8,6 @@ import {
   type SealedPayload,
   SecureProviderKeyDelivery,
 } from "../lib/keyExchange";
-import { logSecurityEvent } from "../lib/security";
 
 const MILLISECONDS_PER_SECOND = 1000;
 const MAX_TOKEN_AGE_MS = 24 * 60 * 60 * MILLISECONDS_PER_SECOND; // 24 hours
@@ -64,7 +63,7 @@ export const registerSidecar = action({
 
     try {
       if (!KeyExchange.validatePublicKey(args.sidecarPublicKey)) {
-        logSecurityEvent({
+        console.log("Security event: Invalid sidecar public key format", {
           operation: "register_sidecar",
           sessionId: args.sessionId,
           success: false,
@@ -77,7 +76,7 @@ export const registerSidecar = action({
       }
 
       if (!KeyExchange.validateKeyId(args.sidecarKeyId)) {
-        logSecurityEvent({
+        console.log("Security event: Invalid sidecar key ID format", {
           operation: "register_sidecar",
           sessionId: args.sessionId,
           success: false,
@@ -128,7 +127,6 @@ export const registerSidecar = action({
           const decryptedKey = await ctx.runAction(
             api.providerKeys.getProviderKey,
             {
-              userId: session.userId,
               provider: keyInfo.provider,
             }
           );
@@ -164,7 +162,7 @@ export const registerSidecar = action({
         args.sidecarKeyId
       );
 
-      await ctx.runMutation(api.sessions.updateSidecarRegistration, {
+      await ctx.runMutation(internal.sessions.updateSidecarRegistration, {
         sessionId: args.sessionId as Id<"sessions">,
         sidecarKeyId: args.sidecarKeyId,
         sidecarPublicKey: args.sidecarPublicKey,
@@ -212,7 +210,7 @@ export const refreshProviderKeys = action({
         };
       }
 
-      const session = await ctx.runQuery(api.sessions.getById, {
+      const session = await ctx.runQuery(internal.sessions.getById, {
         id: args.sessionId,
       });
 
@@ -249,7 +247,6 @@ export const refreshProviderKeys = action({
           const decryptedKey = await ctx.runAction(
             api.providerKeys.getProviderKey,
             {
-              userId: session.userId,
               provider: keyInfo.provider,
             }
           );
