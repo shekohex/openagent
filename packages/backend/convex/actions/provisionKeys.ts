@@ -8,7 +8,7 @@ import {
   type SealedPayload,
   SecureProviderKeyDelivery,
 } from "../lib/keyExchange";
-import { keyProvisioningRateLimit, logSecurityEvent } from "../lib/security";
+import { logSecurityEvent } from "../lib/security";
 
 const MILLISECONDS_PER_SECOND = 1000;
 const MAX_TOKEN_AGE_MS = 24 * 60 * 60 * MILLISECONDS_PER_SECOND; // 24 hours
@@ -36,19 +36,31 @@ export const registerSidecar = action({
     sidecarKeyId: v.string(),
   },
   handler: async (ctx, args): Promise<ProvisioningResult> => {
-    const rateLimit = keyProvisioningRateLimit.checkLimit(args.sessionId);
-    if (!rateLimit.allowed) {
-      logSecurityEvent({
-        operation: "register_sidecar",
-        sessionId: args.sessionId,
-        success: false,
-        error: "Rate limit exceeded",
-      });
-      return {
-        success: false,
-        error: "Rate limit exceeded for key provisioning operations",
-      };
-    }
+    // TODO: Check rate limit using persistent storage
+    // const rateLimit = await ctx.runMutation(
+    //   api.rateLimiting.checkRateLimit,
+    //   {
+    //     identifier: args.sessionId,
+    //     operation: "key_provision",
+    //     metadata: {
+    //       sessionId: args.sessionId,
+    //     },
+    //   }
+    // );
+
+    // if (!rateLimit.allowed) {
+    //   logSecurityEvent({
+    //     operation: "register_sidecar",
+    //     sessionId: args.sessionId,
+    //     success: false,
+    //     error: rateLimit.reason || "Rate limit exceeded",
+    //   });
+    //   return {
+    //     success: false,
+    //     error:
+    //       rateLimit.reason || "Rate limit exceeded for key provisioning operations",
+    //   };
+    // }
 
     try {
       if (!KeyExchange.validatePublicKey(args.sidecarPublicKey)) {
@@ -204,13 +216,7 @@ export const refreshProviderKeys = action({
         id: args.sessionId,
       });
 
-      if (
-        !(
-          session?.sidecarKeyId &&
-          session.sidecarPublicKey &&
-          session.orchestratorPrivateKey
-        )
-      ) {
+      if (!(session?.sidecarKeyId && session.sidecarPublicKey)) {
         return {
           success: false,
           error: "Session not properly registered or missing key exchange data",
@@ -224,7 +230,9 @@ export const refreshProviderKeys = action({
       );
 
       const relevantKeys = args.providers
-        ? userKeys.filter((key) => providersToRefresh.includes(key.provider))
+        ? userKeys.filter((key: any) =>
+            providersToRefresh.includes(key.provider)
+          )
         : userKeys;
 
       if (relevantKeys.length === 0) {
@@ -261,10 +269,13 @@ export const refreshProviderKeys = action({
         };
       }
 
+      // Generate ephemeral keys for this refresh operation
+      const orchestratorKeys = await KeyExchange.generateEphemeralKeyPair();
+
       const sealedKeys = await SecureProviderKeyDelivery.packageProviderKeys(
         decryptedKeys,
         session.sidecarPublicKey,
-        session.orchestratorPrivateKey,
+        orchestratorKeys.privateKey,
         session.sidecarKeyId
       );
 
