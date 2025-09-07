@@ -1,28 +1,18 @@
 import { v } from "convex/values";
-import { api } from "./_generated/api";
-import { action, mutation, query } from "./_generated/server";
-import { authenticatedMutation, authenticatedQuery } from "./lib/auth";
+import { internal } from "./_generated/api";
+import { action, internalMutation, internalQuery } from "./_generated/server";
+import {
+  authenticatedInternalAction,
+  authenticatedMutation,
+  authenticatedQuery,
+} from "./lib/auth";
 import { CryptoError } from "./lib/crypto";
 import { getDefaultEnvelopeEncryption } from "./lib/envelope";
 
 const MAX_PROVIDER_NAME_LENGTH = 50;
 const MIN_PROVIDER_KEY_LENGTH = 8;
 const MAX_PROVIDER_KEY_LENGTH = 1000;
-const HOURS_IN_DAY = 24;
-const MINUTES_IN_HOUR = 60;
-const SECONDS_IN_MINUTE = 60;
-const MILLISECONDS_IN_SECOND = 1000;
-const PROVIDER_CACHE_TTL =
-  HOURS_IN_DAY * MINUTES_IN_HOUR * SECONDS_IN_MINUTE * MILLISECONDS_IN_SECOND;
-const DEFAULT_AUDIT_LOG_LIMIT = 50;
-const MAX_SCHEDULED_ROTATIONS = 100;
-
 const PROVIDER_NAME_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;
-
-type CachedProviders = {
-  providers: string[];
-  updatedAt: number;
-};
 
 function validateProviderName(provider: string): void {
   if (!provider || typeof provider !== "string") {
@@ -211,19 +201,21 @@ export const deleteProviderKey = authenticatedMutation({
   },
 });
 
-export const getProviderKey = action({
+export const getProviderKey = authenticatedInternalAction({
   args: {
-    userId: v.id("users"),
     provider: v.string(),
   },
   handler: async (ctx, args) => {
     validateProviderName(args.provider);
 
     const normalizedProvider = args.provider.trim().toLowerCase();
-    const key = await ctx.runQuery(api.providerKeys.getEncryptedProviderKey, {
-      userId: args.userId,
-      provider: normalizedProvider,
-    });
+    const key = await ctx.runQuery(
+      internal.providerKeys.getEncryptedProviderKey,
+      {
+        userId: ctx.userId,
+        provider: normalizedProvider,
+      }
+    );
 
     if (!key) {
       return null;
@@ -233,8 +225,8 @@ export const getProviderKey = action({
       const envelope = getDefaultEnvelopeEncryption();
       const decryptedKey = await envelope.decryptProviderKey(key);
 
-      await ctx.runMutation(api.providerKeys.updateLastUsed, {
-        userId: args.userId,
+      await ctx.runMutation(internal.providerKeys.updateLastUsed, {
+        userId: ctx.userId,
         provider: normalizedProvider,
       });
 
@@ -248,7 +240,7 @@ export const getProviderKey = action({
   },
 });
 
-export const getEncryptedProviderKey = query({
+export const getEncryptedProviderKey = internalQuery({
   args: {
     userId: v.id("users"),
     provider: v.string(),
@@ -278,7 +270,7 @@ export const getEncryptedProviderKey = query({
   },
 });
 
-export const updateLastUsed = mutation({
+export const updateLastUsed = internalMutation({
   args: {
     userId: v.id("users"),
     provider: v.string(),
@@ -301,16 +293,7 @@ export const updateLastUsed = mutation({
 
 export const getKnownProviders = action({
   args: {},
-  handler: async (ctx): Promise<string[]> => {
-    const cached: CachedProviders | null = await ctx.runQuery(
-      api.providerKeys.getCachedProviders,
-      {}
-    );
-
-    if (cached && Date.now() - cached.updatedAt < PROVIDER_CACHE_TTL) {
-      return cached.providers;
-    }
-
+  handler: async (): Promise<string[]> => {
     try {
       const response = await fetch("https://models.dev/api.json");
       if (!response.ok) {
@@ -318,18 +301,8 @@ export const getKnownProviders = action({
       }
 
       const data = await response.json();
-      const providers = Object.keys(data).sort();
-
-      await ctx.runMutation(api.providerKeys.updateCachedProviders, {
-        providers,
-      });
-
-      return providers;
+      return Object.keys(data).sort();
     } catch {
-      if (cached) {
-        return cached.providers;
-      }
-
       return [
         "openai",
         "anthropic",
@@ -343,35 +316,7 @@ export const getKnownProviders = action({
   },
 });
 
-export const getCachedProviders = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("providerCache").order("desc").first();
-  },
-});
-
-export const updateCachedProviders = mutation({
-  args: {
-    providers: v.array(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const existing = await ctx.db.query("providerCache").order("desc").first();
-
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        providers: args.providers,
-        updatedAt: Date.now(),
-      });
-    } else {
-      await ctx.db.insert("providerCache", {
-        providers: args.providers,
-        updatedAt: Date.now(),
-      });
-    }
-  },
-});
-
-export const updateProviderKeyData = mutation({
+export const updateProviderKeyData = internalMutation({
   args: {
     userId: v.id("users"),
     provider: v.string(),
@@ -409,119 +354,5 @@ export const updateProviderKeyData = mutation({
     });
 
     return { success: true };
-  },
-});
-
-export const addRotationAuditLog = mutation({
-  args: {
-    userId: v.id("users"),
-    provider: v.string(),
-    oldVersion: v.number(),
-    newVersion: v.number(),
-    timestamp: v.number(),
-    success: v.optional(v.boolean()),
-    error: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    await ctx.db.insert("keyRotationAudit", {
-      userId: args.userId,
-      provider: args.provider,
-      oldVersion: args.oldVersion,
-      newVersion: args.newVersion,
-      timestamp: args.timestamp,
-      success: args.success ?? true,
-      error: args.error,
-    });
-  },
-});
-
-export const getRotationAuditLogs = query({
-  args: {
-    userId: v.id("users"),
-    provider: v.optional(v.string()),
-    limit: v.optional(v.number()),
-  },
-  handler: async (ctx, args) => {
-    const limit = args.limit || DEFAULT_AUDIT_LOG_LIMIT;
-
-    if (args.provider !== undefined) {
-      const provider = args.provider;
-      return await ctx.db
-        .query("keyRotationAudit")
-        .withIndex("by_provider", (q) =>
-          q.eq("userId", args.userId).eq("provider", provider)
-        )
-        .order("desc")
-        .take(limit);
-    }
-
-    return await ctx.db
-      .query("keyRotationAudit")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .order("desc")
-      .take(limit);
-  },
-});
-
-export const addScheduledRotation = mutation({
-  args: {
-    userId: v.id("users"),
-    provider: v.string(),
-    scheduledFor: v.number(),
-    newKeyVersion: v.optional(v.number()),
-  },
-  handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query("scheduledRotations")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("provider"), args.provider),
-          q.eq(q.field("status"), "pending")
-        )
-      )
-      .unique();
-
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        scheduledFor: args.scheduledFor,
-        newKeyVersion: args.newKeyVersion,
-      });
-      return { updated: true, id: existing._id };
-    }
-
-    const id = await ctx.db.insert("scheduledRotations", {
-      userId: args.userId,
-      provider: args.provider,
-      scheduledFor: args.scheduledFor,
-      newKeyVersion: args.newKeyVersion,
-      status: "pending",
-      createdAt: Date.now(),
-    });
-
-    return { created: true, id };
-  },
-});
-
-export const getPendingRotations = query({
-  args: {
-    userId: v.optional(v.id("users")),
-    before: v.optional(v.number()),
-  },
-  handler: async (ctx, args) => {
-    const cutoff = args.before || Date.now();
-
-    let rotationQuery = ctx.db
-      .query("scheduledRotations")
-      .withIndex("by_schedule", (q) => q.lte("scheduledFor", cutoff))
-      .filter((q) => q.eq(q.field("status"), "pending"));
-
-    if (args.userId) {
-      rotationQuery = rotationQuery.filter((q) =>
-        q.eq(q.field("userId"), args.userId)
-      );
-    }
-
-    return await rotationQuery.take(MAX_SCHEDULED_ROTATIONS);
   },
 });
