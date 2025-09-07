@@ -3,10 +3,10 @@ import { api } from "./_generated/api";
 import schema from "./schema";
 import { createConvexTest } from "./test-utils";
 
-describe("Provider Keys", () => {
-  const t = createConvexTest(schema);
+describe("Provider Keys", async () => {
+  const t = await createConvexTest(schema);
 
-  // Helper function to create a test user and return authenticated context
+   // Helper function to create a test user and return authenticated context
   async function createTestUser(_subject: string, name: string) {
     const userId = await t.run(async (ctx) => {
       return ctx.db.insert("users", {});
@@ -15,7 +15,6 @@ describe("Provider Keys", () => {
       subject: userId,
       name,
     });
-
 
     return {
       userId: userId,
