@@ -96,6 +96,15 @@ export const upsertProviderKey = authenticatedMutation({
     validateProviderName(args.provider);
 
     if (!args.key || args.key.trim().length === 0) {
+      // TODO: Audit failed validation
+      // await ctx.runMutation(api.auditLog.logSecurityEvent, {
+      //   operation: "key_create",
+      //   userId: ctx.userId,
+      //   provider: args.provider,
+      //   success: false,
+      //   severity: "warning",
+      //   errorMessage: "Provider key cannot be empty",
+      // });
       throw new Error("Provider key cannot be empty");
     }
 
@@ -155,6 +164,19 @@ export const upsertProviderKey = authenticatedMutation({
         masterKeyId: encryptedKey.masterKeyId,
         createdAt: now,
       });
+
+      // TODO: Audit successful key creation
+      // await ctx.runMutation(api.auditLog.logSecurityEvent, {
+      //   operation: "key_create",
+      //   userId: ctx.userId,
+      //   provider: normalizedProvider,
+      //   success: true,
+      //   severity: "info",
+      //   metadata: {
+      //     keyVersion: encryptedKey.keyVersion,
+      //   },
+      // });
+
       return { created: true, provider: normalizedProvider };
     } catch (error) {
       if (error instanceof CryptoError) {
