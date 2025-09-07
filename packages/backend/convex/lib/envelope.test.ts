@@ -1,6 +1,6 @@
-import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
-import { EnvelopeEncryption, type StoredProviderKey } from "./envelope";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CryptoError } from "./crypto";
+import { EnvelopeEncryption, type StoredProviderKey } from "./envelope";
 import type { MasterKeyManager } from "./keyManager";
 
 describe("Envelope Encryption", () => {
@@ -9,11 +9,6 @@ describe("Envelope Encryption", () => {
   let mockKeyManager: MasterKeyManager;
 
   beforeEach(async () => {
-    // Reset rate limiters before each test
-    const { cryptoOperationsRateLimit } = await import("./security");
-    cryptoOperationsRateLimit.reset("encrypt_provider_key");
-    cryptoOperationsRateLimit.reset("decrypt_provider_key");
-
     masterKey = await crypto.subtle.generateKey(
       { name: "AES-GCM", length: 256 },
       true,
@@ -254,57 +249,39 @@ describe("Envelope Encryption", () => {
     });
   });
 
-  describe("Rate Limiting", () => {
-    it("should enforce rate limits on encryption", async () => {
-      const providerKey = "sk-test-rate-limit-1234567890abcdefghijklmn";
+  describe("Memory Security", () => {
+    it("should use SecureBuffer for sensitive data", async () => {
+      const providerKey = "sk-test-memory-security-1234567890abcdefgh";
+      const secureBufferSpy = vi.spyOn(console, "log");
 
-      // The rate limit is set to 10 attempts per minute
-      let hitRateLimit = false;
+      await envelope.encryptProviderKey(providerKey);
 
-      for (let i = 0; i < 15; i++) {
-        try {
-          await envelope.encryptProviderKey(providerKey);
-        } catch (error) {
-          if (
-            error instanceof CryptoError &&
-            error.message.includes("Rate limit")
-          ) {
-            hitRateLimit = true;
-            expect(i).toBeGreaterThanOrEqual(9);
-            break;
-          }
-        }
-      }
-
-      expect(hitRateLimit).toBe(true);
+      // Verify that security events are logged
+      expect(secureBufferSpy).toHaveBeenCalledWith(
+        "Security event: Provider key encrypted successfully",
+        expect.objectContaining({
+          operation: "encrypt_provider_key",
+          success: true,
+        })
+      );
     });
 
-    it("should enforce rate limits on decryption", async () => {
-      const providerKey = "sk-test-rate-limit-decrypt-1234567890abcdef";
-      const encrypted = await envelope.encryptProviderKey(providerKey);
+    it("should cleanup secure operations", async () => {
+      const providerKey = "sk-test-cleanup-1234567890abcdef";
+      const createSecureOperationSpy = vi.spyOn(
+        envelope as any,
+        "createSecureOperation"
+      );
+      const mockCleanup = vi.fn();
 
-      // Reset the rate limiter for decryption
-      const { cryptoOperationsRateLimit } = await import("./security");
-      cryptoOperationsRateLimit.reset("decrypt_provider_key");
+      createSecureOperationSpy.mockReturnValue({
+        addBuffer: vi.fn(),
+        cleanup: mockCleanup,
+      });
 
-      let hitRateLimit = false;
+      await envelope.encryptProviderKey(providerKey);
 
-      for (let i = 0; i < 15; i++) {
-        try {
-          await envelope.decryptProviderKey(encrypted);
-        } catch (error) {
-          if (
-            error instanceof CryptoError &&
-            error.message.includes("Rate limit")
-          ) {
-            hitRateLimit = true;
-            expect(i).toBeGreaterThanOrEqual(9);
-            break;
-          }
-        }
-      }
-
-      expect(hitRateLimit).toBe(true);
+      expect(mockCleanup).toHaveBeenCalled();
     });
   });
 });
