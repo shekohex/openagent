@@ -6,13 +6,30 @@ import { createConvexTest } from "./test-utils";
 describe("Provider Keys", () => {
   const t = createConvexTest(schema);
 
+  // Helper function to create a test user and return authenticated context
+  async function createTestUser(_subject: string, name: string) {
+    const userId = await t.run(async (ctx) => {
+      return ctx.db.insert("users", {});
+    });
+    const identityContext = t.withIdentity({ 
+      subject: userId,
+      name,
+    });
+
+
+    return {
+      userId: userId,
+      user: identityContext,
+    };
+  }
+
   describe("Basic CRUD Operations", () => {
     it("should create and retrieve provider keys", async () => {
-      const user = t.withIdentity({ subject: "test123", name: "Test User" });
+      const { user } = await createTestUser("test123", "Test User");
 
       await user.mutation(api.providerKeys.upsertProviderKey, {
         provider: "openai",
-        key: "test-api-key",
+        key: "sk-1234567890abcdef1234567890abcdef1234567890abcdef",
       });
 
       const keys = await user.query(api.providerKeys.listUserProviderKeys);
@@ -21,27 +38,27 @@ describe("Provider Keys", () => {
     });
 
     it("should update existing provider keys", async () => {
-      const user = t.withIdentity({ subject: "test123", name: "Test User" });
+      const { user } = await createTestUser("test123", "Test User");
 
       await user.mutation(api.providerKeys.upsertProviderKey, {
         provider: "openai",
-        key: "original-key",
+        key: "sk-original1234567890abcdef1234567890abcdef1234567890",
       });
 
       const result = await user.mutation(api.providerKeys.upsertProviderKey, {
         provider: "openai",
-        key: "updated-key",
+        key: "sk-updated1234567890abcdef1234567890abcdef1234567890",
       });
 
       expect(result.updated).toBe(true);
     });
 
     it("should delete provider keys", async () => {
-      const user = t.withIdentity({ subject: "test123", name: "Test User" });
+      const { user } = await createTestUser("test123", "Test User");
 
       await user.mutation(api.providerKeys.upsertProviderKey, {
         provider: "openai",
-        key: "test-key",
+        key: "sk-testkey1234567890abcdef1234567890abcdef1234567890",
       });
 
       const result = await user.mutation(api.providerKeys.deleteProviderKey, {
@@ -63,12 +80,12 @@ describe("Provider Keys", () => {
     });
 
     it("should isolate user data", async () => {
-      const alice = t.withIdentity({ subject: "alice123", name: "Alice" });
-      const bob = t.withIdentity({ subject: "bob456", name: "Bob" });
+      const { user: alice } = await createTestUser("alice123", "Alice");
+      const { user: bob } = await createTestUser("bob456", "Bob");
 
       await alice.mutation(api.providerKeys.upsertProviderKey, {
         provider: "openai",
-        key: "alice-key",
+        key: "sk-alicekey1234567890abcdef1234567890abcdef1234567890",
       });
 
       const aliceKeys = await alice.query(
@@ -83,29 +100,29 @@ describe("Provider Keys", () => {
 
   describe("Input Validation", () => {
     it("should reject empty provider names", async () => {
-      const user = t.withIdentity({ subject: "test123", name: "Test User" });
+      const { user } = await createTestUser("test123", "Test User");
 
       await expect(
         user.mutation(api.providerKeys.upsertProviderKey, {
           provider: "",
-          key: "test-key",
+          key: "sk-testkey1234567890abcdef1234567890abcdef1234567890",
         })
-      ).rejects.toThrow("Provider name cannot be empty");
+      ).rejects.toThrow("Provider name is required");
     });
 
     it("should reject invalid provider names", async () => {
-      const user = t.withIdentity({ subject: "test123", name: "Test User" });
+      const { user } = await createTestUser("test123", "Test User");
 
       await expect(
         user.mutation(api.providerKeys.upsertProviderKey, {
           provider: "invalid@name",
-          key: "test-key",
+          key: "sk-testkey1234567890abcdef1234567890abcdef1234567890",
         })
       ).rejects.toThrow("Provider name must start with alphanumeric");
     });
 
     it("should reject empty keys", async () => {
-      const user = t.withIdentity({ subject: "test123", name: "Test User" });
+      const { user } = await createTestUser("test123", "Test User");
 
       await expect(
         user.mutation(api.providerKeys.upsertProviderKey, {
@@ -116,7 +133,7 @@ describe("Provider Keys", () => {
     });
 
     it("should reject keys that are too short", async () => {
-      const user = t.withIdentity({ subject: "test123", name: "Test User" });
+      const { user } = await createTestUser("test123", "Test User");
 
       await expect(
         user.mutation(api.providerKeys.upsertProviderKey, {
@@ -129,11 +146,11 @@ describe("Provider Keys", () => {
 
   describe("Key Existence Checks", () => {
     it("should return true for existing providers", async () => {
-      const user = t.withIdentity({ subject: "test123", name: "Test User" });
+      const { user } = await createTestUser("test123", "Test User");
 
       await user.mutation(api.providerKeys.upsertProviderKey, {
         provider: "openai",
-        key: "test-key",
+        key: "sk-testkey1234567890abcdef1234567890abcdef1234567890",
       });
 
       const exists = await user.query(api.providerKeys.hasProviderKey, {
@@ -144,7 +161,7 @@ describe("Provider Keys", () => {
     });
 
     it("should return false for non-existing providers", async () => {
-      const user = t.withIdentity({ subject: "test123", name: "Test User" });
+      const { user } = await createTestUser("test123", "Test User");
 
       const exists = await user.query(api.providerKeys.hasProviderKey, {
         provider: "nonexistent",
