@@ -9,7 +9,7 @@ export type MasterKeyProvider = {
 
 export class EnvironmentMasterKeyProvider implements MasterKeyProvider {
   private readonly envVarName: string;
-  private readonly cachedKey?: CryptoKey;
+  private cachedKey?: CryptoKey;
 
   constructor(envVarName = "OPENAGENT_MASTER_KEY") {
     this.envVarName = envVarName;
