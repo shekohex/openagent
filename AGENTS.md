@@ -1,1 +1,2 @@
-.claude/CLAUDE.md
+@./.claude/CLAUDE.md
+@./.claude/CONVEX.md
