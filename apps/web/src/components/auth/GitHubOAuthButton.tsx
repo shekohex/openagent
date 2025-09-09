@@ -1,14 +1,12 @@
-import { useAuthActions } from "@convex-dev/auth/react";
-import { SiGithub } from "@icons-pack/react-simple-icons";
 import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth-client";
+import { SiGithub } from "@icons-pack/react-simple-icons";
 
 export function GitHubOAuthButton() {
-  const { signIn } = useAuthActions();
-
   return (
     <Button
       className="w-full"
-      onClick={() => signIn("github", { redirectTo: "/" })}
+      onClick={() => authClient.signIn.social({ provider: "github" })}
       type="button"
       variant="outline"
     >

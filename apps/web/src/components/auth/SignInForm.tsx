@@ -1,9 +1,9 @@
-import { useAuthActions } from "@convex-dev/auth/react";
-import { useForm } from "@tanstack/react-form";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { authClient } from "@/lib/auth-client";
+import { useForm } from "@tanstack/react-form";
+import { z } from "zod";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -15,8 +15,6 @@ const signInSchema = z.object({
 });
 
 export function SignInForm() {
-  const { signIn } = useAuthActions();
-
   const form = useForm({
     defaultValues: {
       email: "",
@@ -26,7 +24,10 @@ export function SignInForm() {
       onChange: signInSchema,
     },
     onSubmit: async ({ value }) => {
-      await signIn("password", value);
+      await authClient.signIn.email({
+        email: value.email,
+        password: value.password,
+      });
     },
   });
 
