@@ -38,7 +38,8 @@ bun dev
 Setup Auth Keys:
 
 ```bash
-bunx @convex-dev/auth
+bunx convex env set BETTER_AUTH_SECRET=$(openssl rand -base64 32)
+bunx convex env set SITE_URL http://localhost:3001
 ```
 
 Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
