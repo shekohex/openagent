@@ -1,3 +1,6 @@
+import Loader from "@/components/loader";
+import { Toaster } from "@/components/ui/sonner";
+import { fetchSession, getCookieName } from "@/lib/server-auth-utils";
 import type { ConvexQueryClient } from "@convex-dev/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -8,9 +11,9 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { createServerFn } from "@tanstack/react-start";
+import { getCookie, getWebRequest } from "@tanstack/react-start/server";
 import { AuthLoading, type ConvexReactClient } from "convex/react";
-import Loader from "@/components/loader";
-import { Toaster } from "@/components/ui/sonner";
 import Header from "../components/header";
 import appCss from "../index.css?url";
 
@@ -19,6 +22,18 @@ export type RouterAppContext = {
   convexClient: ConvexReactClient;
   convexQueryClient: ConvexQueryClient;
 };
+
+// Server side session request
+const fetchAuth = createServerFn({ method: "GET" }).handler(async () => {
+  const sessionCookieName = await getCookieName();
+  const token = getCookie(sessionCookieName);
+  const request = getWebRequest();
+  const { session } = await fetchSession(request);
+  return {
+    userId: session?.user.id,
+    token,
+  };
+});
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   head: () => ({
@@ -42,10 +57,24 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
     ],
   }),
 
-  component: RootDocument,
+  beforeLoad: async (ctx) => {
+    // all queries, mutations and action made with TanStack Query will be
+    // authenticated by an identity token.
+    const auth = await fetchAuth();
+    const { userId, token } = auth;
+
+    // During SSR only (the only time serverHttpClient exists),
+    // set the auth token for Convex to make HTTP queries with.
+    if (token) {
+      ctx.context.convexQueryClient.serverHttpClient?.setAuth(token);
+    }
+
+    return { userId, token };
+  },
+  component: RootComponent,
 });
 
-function RootDocument() {
+function RootComponent() {
   const isFetching = useRouterState({ select: (s) => s.isLoading });
   return (
     <html className="dark" lang="en">
