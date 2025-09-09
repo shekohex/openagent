@@ -1,14 +1,14 @@
 import { HOUR, RateLimiter } from "@convex-dev/rate-limiter";
 import { v } from "convex/values";
+import { CryptoError } from "../lib/crypto";
+import { getDefaultEnvelopeEncryption } from "../lib/envelope";
 import { components } from "./_generated/api";
 import { internalMutation, internalQuery } from "./_generated/server";
 import {
   authenticatedInternalMutation,
   authenticatedMutation,
   authenticatedQuery,
-} from "./lib/auth";
-import { CryptoError } from "./lib/crypto";
-import { getDefaultEnvelopeEncryption } from "./lib/envelope";
+} from "./authenticated";
 
 const MAX_PROVIDER_NAME_LENGTH = 50;
 const MIN_PROVIDER_KEY_LENGTH = 8;

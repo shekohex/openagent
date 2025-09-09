@@ -1,4 +1,4 @@
-import { authenticatedQuery } from "../lib/auth";
+import { authenticatedQuery } from "../authenticated";
 
 export const getCurrentUser = authenticatedQuery({
   args: {},

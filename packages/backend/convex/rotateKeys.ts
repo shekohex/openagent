@@ -1,7 +1,7 @@
 import { v } from "convex/values";
+import { getDefaultEnvelopeEncryption } from "../lib/envelope";
 import { internal } from "./_generated/api";
-import { authenticatedInternalMutation } from "./lib/auth";
-import { getDefaultEnvelopeEncryption } from "./lib/envelope";
+import { authenticatedInternalMutation } from "./authenticated";
 
 export const rotateProviderKey = authenticatedInternalMutation({
   args: {

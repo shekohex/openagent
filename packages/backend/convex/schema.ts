@@ -1,16 +1,12 @@
-import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 const schema = defineSchema({
-  ...authTables,
-
   users: defineTable({
+    email: v.string(),
     name: v.optional(v.string()),
     image: v.optional(v.string()),
-    email: v.optional(v.string()),
     emailVerificationTime: v.optional(v.number()),
-    githubId: v.optional(v.number()),
     createdAt: v.optional(v.number()),
   }).index("email", ["email"]),
 
