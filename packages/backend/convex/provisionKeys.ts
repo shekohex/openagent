@@ -1,13 +1,13 @@
 import { v } from "convex/values";
-import { api, internal } from "./_generated/api";
-import type { Id } from "./_generated/dataModel";
-import { internalMutation } from "./_generated/server";
-import { CryptoError } from "./lib/crypto";
+import { CryptoError } from "../lib/crypto";
 import {
   KeyExchange,
   type SealedPayload,
   SecureProviderKeyDelivery,
-} from "./lib/keyExchange";
+} from "../lib/keyExchange";
+import { api, internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
+import { internalMutation } from "./_generated/server";
 
 const MILLISECONDS_PER_SECOND = 1000;
 const MAX_TOKEN_AGE_MS = 24 * 60 * 60 * MILLISECONDS_PER_SECOND; // 24 hours

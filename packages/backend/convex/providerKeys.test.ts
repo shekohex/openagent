@@ -9,7 +9,10 @@ describe("Provider Keys", async () => {
    // Helper function to create a test user and return authenticated context
   async function createTestUser(_subject: string, name: string) {
     const userId = await t.run(async (ctx) => {
-      return ctx.db.insert("users", {});
+      return ctx.db.insert("users", {
+        email: `${name}@example.com`,
+        name,
+      });
     });
     const identityContext = t.withIdentity({ 
       subject: userId,

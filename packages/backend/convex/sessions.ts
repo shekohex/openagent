@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery, query } from "./_generated/server";
-import { authenticatedMutation, authenticatedQuery } from "./lib/auth";
+import { authenticatedMutation, authenticatedQuery } from "./authenticated";
 
 const MAX_SESSIONS_LIMIT = 50;
 

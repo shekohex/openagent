@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { authenticatedMutation } from "../lib/auth";
+import { authenticatedMutation } from "../authenticated";
 
 export const updateProfile = authenticatedMutation({
   args: {
