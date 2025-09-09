@@ -20,10 +20,10 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "@auth/core": "0.37.0",
-    "@convex-dev/auth": "^0.0.88",
+    "@convex-dev/better-auth": "^0.8.0-alpha.9",
     "@convex-dev/rate-limiter": "^0.2.12",
     "@edge-runtime/vm": "^5.0.0",
+    "better-auth": "1.3.8",
     "convex": "^1.26.2",
     "convex-helpers": "^0.1.104",
     "convex-test": "^0.0.38",
