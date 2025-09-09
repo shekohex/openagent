@@ -20,6 +20,6 @@
 		"isolatedModules": true,
 		"noEmit": true
 	},
-	"include": ["./**/*", "../test-utils"],
+	"include": ["./**/*", "../test-utils", "../lib"],
 	"exclude": ["./_generated"]
 }

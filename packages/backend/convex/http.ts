@@ -1,8 +1,10 @@
 import { httpRouter } from "convex/server";
-import { auth } from "./auth";
+import { createAuth } from "../lib/auth";
+import { betterAuthComponent } from "./auth";
 
 const http = httpRouter();
 
-auth.addHttpRoutes(http);
+// biome-ignore lint/suspicious/noExplicitAny: needs to be fixed upstream
+betterAuthComponent.registerRoutes(http, createAuth as any);
 
 export default http;
