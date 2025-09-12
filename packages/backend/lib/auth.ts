@@ -8,6 +8,9 @@ import { betterAuthComponent } from "../convex/auth";
 
 const siteUrl = requireEnv("SITE_URL");
 
+const isGitHubAuthEnabled =
+  !!process.env.AUTH_GITHUB_ID && !!process.env.AUTH_GITHUB_SECRET;
+
 const convexAdapterWrapper = (
   ctx: GenericCtx,
   component: BetterAuth<Id<"users">>
@@ -28,12 +31,14 @@ export const createAuth = (ctx: GenericCtx) =>
       enabled: true,
       requireEmailVerification: false,
     },
-    socialProviders: {
-      github: {
-        clientId: requireEnv("AUTH_GITHUB_ID"),
-        clientSecret: requireEnv("AUTH_GITHUB_SECRET"),
-      },
-    },
+    socialProviders: isGitHubAuthEnabled
+      ? {
+          github: {
+            clientId: requireEnv("AUTH_GITHUB_ID"),
+            clientSecret: requireEnv("AUTH_GITHUB_SECRET"),
+          },
+        }
+      : undefined,
     plugins: [
       // The Convex plugin is required
       convex(),
