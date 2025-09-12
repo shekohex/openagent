@@ -39,8 +39,9 @@ jobs:
         id: claude
         uses: anthropics/claude-code-action@beta
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-
+          settings: ".github/workflows/claude-settings.json" # Path to custom settings file
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          max_turns: "15" # Limit to 15 conversation turns
           # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
             actions: read
