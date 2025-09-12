@@ -37,7 +37,9 @@ jobs:
         id: claude-review
         uses: anthropics/claude-code-action@beta
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          settings: ".github/workflows/claude-settings.json" # Path to custom settings file
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          max_turns: "15" # Limit to 15 conversation turns
 
           # Optional: Specify model (defaults to Claude Sonnet 4, uncomment for Claude Opus 4.1)
           # model: "claude-opus-4-1-20250805"
