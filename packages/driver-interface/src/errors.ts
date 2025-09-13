@@ -1,10 +1,11 @@
 export class DriverError extends Error {
-  constructor(
-    message: string,
-    public readonly code: string,
-    public readonly retryable: boolean = false
-  ) {
+  readonly code: string;
+  readonly retryable: boolean;
+
+  constructor(message: string, code: string, retryable = false) {
     super(message);
+    this.code = code;
+    this.retryable = retryable;
     this.name = "DriverError";
   }
 }
@@ -16,11 +17,11 @@ export class ContainerNotFoundError extends DriverError {
 }
 
 export class ContainerCreationError extends DriverError {
-  constructor(
-    message: string,
-    public readonly details?: any
-  ) {
+  readonly details?: unknown;
+
+  constructor(message: string, details?: unknown) {
     super(message, "CONTAINER_CREATION_FAILED", true);
+    this.details = details;
   }
 }
 
