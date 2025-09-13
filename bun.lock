@@ -3,6 +3,9 @@
   "workspaces": {
     "": {
       "name": "openagent",
+      "dependencies": {
+        "dockernode": "^0.1.0",
+      },
       "devDependencies": {
         "@biomejs/biome": "2.2.2",
         "turbo": "^2.5.6",
@@ -93,7 +96,6 @@
       "version": "1.0.0",
       "dependencies": {
         "@hono/zod-openapi": "^1.1.0",
-        "@hono/zod-validator": "^0.7.2",
         "@opencode-ai/sdk": "^0.7.9",
         "hono": "^4.9.7",
         "zod": "^4.1.8",
@@ -1009,6 +1011,8 @@
     "devalue": ["devalue@5.3.2", "", {}, "sha512-UDsjUbpQn9kvm68slnrs+mfxwFkIflOhkanmyabZ8zOYk8SMEIbJ3TK+88g70hSIeytu4y18f0z/hYHMTrXIWw=="],
 
     "diff": ["diff@8.0.2", "", {}, "sha512-sSuxWU5j5SR9QQji/o2qMvqRNYRDOcBTgsJ/DeCf4iSN4gW+gNMXM7wFIP+fdXZxoNiAnHUTGjCr+TSWXdRDKg=="],
+
+    "dockernode": ["dockernode@0.1.0", "", { "bin": { "docker-repl": "./bin/index.js" } }, "sha512-hWe8CxOB5PXB+uMarax5o43apN0Kzat3uSSHoE68aaVRuQwsul8aB/FEI2wxuODJxk3B+mF/vqbPQlAxnrKleQ=="],
 
     "dom-accessibility-api": ["dom-accessibility-api@0.5.16", "", {}, "sha512-X7BJ2yElsnOJ30pZF4uIIDfBEVgF4XEBxL9Bxhy6dnrm5hkzqmsWHGTiHqRiITNhMyFLyAiWndIJP7Z1NTteDg=="],
 
