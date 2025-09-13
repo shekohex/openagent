@@ -1,9 +1,15 @@
 import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { type Infer, v } from "convex/values";
+import { brandedString, literals, typedV } from "convex-helpers/validators";
+
+// Define a validator that requires an Email string type.
+export const emailValidator = brandedString("email");
+// Define the Email type based on the branded string.
+export type Email = Infer<typeof emailValidator>;
 
 const schema = defineSchema({
   users: defineTable({
-    email: v.string(),
+    email: emailValidator,
     name: v.optional(v.string()),
     image: v.optional(v.string()),
     emailVerificationTime: v.optional(v.number()),
@@ -13,13 +19,7 @@ const schema = defineSchema({
   sessions: defineTable({
     userId: v.id("users"),
     title: v.string(),
-    status: v.union(
-      v.literal("creating"),
-      v.literal("active"),
-      v.literal("idle"),
-      v.literal("stopped"),
-      v.literal("error")
-    ),
+    status: literals("creating", "active", "idle", "stopped", "error"),
     currentInstanceId: v.optional(v.id("instances")),
     registrationToken: v.optional(v.string()),
     sidecarKeyId: v.optional(v.string()),
@@ -37,13 +37,8 @@ const schema = defineSchema({
 
   instances: defineTable({
     sessionId: v.id("sessions"),
-    driver: v.union(v.literal("docker"), v.literal("k8s"), v.literal("local")),
-    state: v.union(
-      v.literal("provisioning"),
-      v.literal("running"),
-      v.literal("terminated"),
-      v.literal("error")
-    ),
+    driver: literals("docker", "k8s", "local"),
+    state: literals("provisioning", "running", "terminated", "error"),
     endpointInternal: v.optional(v.string()),
     registeredAt: v.optional(v.number()),
     terminatedAt: v.optional(v.number()),
@@ -135,6 +130,8 @@ const schema = defineSchema({
     .index("by_session", ["sessionId"])
     .index("by_type", ["sessionId", "type"]),
 });
+
+export const vv = typedV(schema);
 
 export default schema;
 
