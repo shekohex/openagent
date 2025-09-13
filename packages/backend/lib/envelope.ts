@@ -49,11 +49,6 @@ export class EnvelopeEncryption {
 
   async encryptProviderKey(providerKey: string): Promise<StoredProviderKey> {
     if (!this.validateKeyStrength(providerKey)) {
-      console.log("Security event: Weak provider key detected", {
-        operation: "encrypt_provider_key",
-        success: false,
-        error: "Weak provider key detected",
-      });
       throw new CryptoError("Provider key does not meet security requirements");
     }
 
@@ -85,19 +80,8 @@ export class EnvelopeEncryption {
         masterKeyId: this.keyManager.getKeyId(),
       };
 
-      console.log("Security event: Provider key encrypted successfully", {
-        operation: "encrypt_provider_key",
-        success: true,
-        metadata: { keyVersion: this.currentKeyVersion },
-      });
-
       return result;
     } catch (error) {
-      console.log("Security event: Provider key encryption failed", {
-        operation: "encrypt_provider_key",
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
       throw new CryptoError("Failed to encrypt provider key", error as Error);
     } finally {
       operation.cleanup();
@@ -109,11 +93,6 @@ export class EnvelopeEncryption {
 
     try {
       if (storedKey.keyVersion !== this.currentKeyVersion) {
-        console.log("Security event: Unsupported key version", {
-          operation: "decrypt_provider_key",
-          success: false,
-          error: `Unsupported key version: ${storedKey.keyVersion}`,
-        });
         throw new CryptoError(
           `Unsupported key version: ${storedKey.keyVersion}. Current version: ${this.currentKeyVersion}`
         );
@@ -149,19 +128,8 @@ export class EnvelopeEncryption {
       const keyBuffer = new SecureBuffer(decryptedKey);
       operation.addBuffer(keyBuffer);
 
-      console.log("Security event: Provider key decrypted successfully", {
-        operation: "decrypt_provider_key",
-        success: true,
-        metadata: { keyVersion: storedKey.keyVersion },
-      });
-
       return decryptedKey;
     } catch (error) {
-      console.log("Security event: Provider key decryption failed", {
-        operation: "decrypt_provider_key",
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
       throw new CryptoError("Failed to decrypt provider key", error as Error);
     } finally {
       operation.cleanup();
