@@ -1,12 +1,12 @@
-import { v } from "convex/values";
 import { internalMutation, internalQuery, query } from "./_generated/server";
 import { authenticatedMutation, authenticatedQuery } from "./authenticated";
+import { vv } from "./schema";
 
 const MAX_SESSIONS_LIMIT = 50;
 
 export const getById = internalQuery({
   args: {
-    id: v.id("sessions"),
+    id: vv.id("sessions"),
   },
   handler: async (ctx, args) => {
     const session = await ctx.db.get(args.id);
@@ -21,29 +21,9 @@ export const getById = internalQuery({
 
 export const getByIdWithToken = query({
   args: {
-    id: v.id("sessions"),
-    token: v.string(),
+    id: vv.id("sessions"),
+    token: vv.string(),
   },
-  returns: v.union(
-    v.object({
-      _id: v.id("sessions"),
-      _creationTime: v.number(),
-      title: v.string(),
-      status: v.union(
-        v.literal("creating"),
-        v.literal("active"),
-        v.literal("idle"),
-        v.literal("stopped"),
-        v.literal("error")
-      ),
-      userId: v.id("users"),
-      registrationToken: v.optional(v.string()),
-      lastActivityAt: v.number(),
-      createdAt: v.number(),
-      updatedAt: v.number(),
-    }),
-    v.null()
-  ),
   handler: async (ctx, args) => {
     const session = await ctx.db.get(args.id);
 
@@ -57,12 +37,12 @@ export const getByIdWithToken = query({
 
 export const updateSidecarRegistration = internalMutation({
   args: {
-    sessionId: v.id("sessions"),
-    sidecarKeyId: v.string(),
-    sidecarPublicKey: v.string(),
-    orchestratorPublicKey: v.string(),
-    orchestratorKeyId: v.string(),
-    registeredAt: v.number(),
+    sessionId: vv.id("sessions"),
+    sidecarKeyId: vv.string(),
+    sidecarPublicKey: vv.string(),
+    orchestratorPublicKey: vv.string(),
+    orchestratorKeyId: vv.string(),
+    registeredAt: vv.number(),
   },
   handler: async (ctx, args) => {
     const session = await ctx.db.get(args.sessionId);
@@ -84,7 +64,7 @@ export const updateSidecarRegistration = internalMutation({
 
 export const createSession = authenticatedMutation({
   args: {
-    title: v.optional(v.string()),
+    title: vv.optional(vv.string()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
