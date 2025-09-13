@@ -355,7 +355,11 @@ export const internal = {
   "instances.create": {
     args: {
       sessionId: v.id("sessions"),
-      driver: v.union(v.literal("docker"), v.literal("k8s"), v.literal("local")),
+      driver: v.union(
+        v.literal("docker"),
+        v.literal("k8s"),
+        v.literal("local")
+      ),
       endpointInternal: v.string(),
     },
     returns: v.id("instances"),
@@ -377,7 +381,11 @@ export const internal = {
     args: {
       sessionId: v.id("sessions"),
       userId: v.id("users"),
-      type: v.union(v.literal("tokens"), v.literal("runtime"), v.literal("storage")),
+      type: v.union(
+        v.literal("tokens"),
+        v.literal("runtime"),
+        v.literal("storage")
+      ),
       quantity: v.number(),
       meta: v.optional(v.any()),
     },
@@ -387,7 +395,11 @@ export const internal = {
   "sessionArtifacts.create": {
     args: {
       sessionId: v.id("sessions"),
-      type: v.union(v.literal("session_json"), v.literal("zip"), v.literal("git")),
+      type: v.union(
+        v.literal("session_json"),
+        v.literal("zip"),
+        v.literal("git")
+      ),
       urlOrPath: v.string(),
     },
     returns: v.id("sessionArtifacts"),
