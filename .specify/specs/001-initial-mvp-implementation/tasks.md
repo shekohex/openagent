@@ -48,7 +48,7 @@
 - [x] T001 Create sidecar project structure in apps/sidecar with Hono + TypeScript
 - [x] T002 Initialize sidecar dependencies (hono, @opencode-ai/sdk, dockerode)
 - [x] T003 [P] Configure Docker build for sidecar container image
-- [ ] T004 [P] Create driver-interface package structure in packages/driver-interface
+- [x] T004 [P] Create driver-interface package structure in packages/driver-interface
 - [ ] T005 [P] Create crypto-lib package for envelope encryption in packages/crypto-lib
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
@@ -92,7 +92,7 @@
 
 ### Container Driver Implementation
 
-- [ ] T027 Define driver interface in packages/driver-interface/src/types.ts
+- [x] T027 Define driver interface in packages/driver-interface/src/types.ts
 - [ ] T028 Implement Docker driver in convex/drivers/docker.ts
 - [ ] T029 Add volume management in convex/drivers/docker-volumes.ts
 - [ ] T030 Implement network isolation in convex/drivers/docker-network.ts
