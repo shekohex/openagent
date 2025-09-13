@@ -1,9 +1,9 @@
+import { useForm } from "@tanstack/react-form";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
-import { useForm } from "@tanstack/react-form";
-import { z } from "zod";
 
 const MIN_NAME_LENGTH = 2;
 const MIN_PASSWORD_LENGTH = 8;

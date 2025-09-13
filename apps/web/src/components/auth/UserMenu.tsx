@@ -1,3 +1,5 @@
+import { api } from "@openagent/backend/convex/_generated/api";
+import { useQuery } from "convex/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,8 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth-client";
-import { api } from "@openagent/backend/convex/_generated/api";
-import { useQuery } from "convex/react";
 
 export function UserMenu() {
   const user = useQuery(api.users.getCurrentUser.getCurrentUser);
