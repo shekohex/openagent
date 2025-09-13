@@ -47,7 +47,7 @@
 
 - [x] T001 Create sidecar project structure in apps/sidecar with Hono + TypeScript
 - [x] T002 Initialize sidecar dependencies (hono, @opencode-ai/sdk, dockerode)
-- [ ] T003 [P] Configure Docker build for sidecar container image
+- [x] T003 [P] Configure Docker build for sidecar container image
 - [ ] T004 [P] Create driver-interface package structure in packages/driver-interface
 - [ ] T005 [P] Create crypto-lib package for envelope encryption in packages/crypto-lib
 
