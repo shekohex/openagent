@@ -4,6 +4,7 @@
 **Prerequisites**: plan.md (✓), research.md (✓), data-model.md (✓), contracts/ (✓)
 
 ## Execution Flow (main)
+
 ```
 1. Load plan.md from feature directory
    → Extract: TypeScript/Bun, TanStack Start, Convex, Hono, OpenCode SDK
@@ -30,10 +31,12 @@
 ```
 
 ## Format: `[ID] [P?] Description`
+
 - **[P]**: Can run in parallel (different files, no dependencies)
 - Include exact file paths in descriptions
 
 ## Path Conventions
+
 - **Sidecar**: `apps/sidecar/src/`, `apps/sidecar/tests/`
 - **Frontend**: `apps/web/app/`, `apps/web/tests/`
 - **Backend**: `convex/`, `packages/backend/convex/`
@@ -41,16 +44,19 @@
 - **Tests**: `tests/contract/`, `tests/integration/`, `tests/e2e/`
 
 ## Phase 3.1: Setup
-- [ ] T001 Create sidecar project structure in apps/sidecar with Hono + TypeScript
-- [ ] T002 Initialize sidecar dependencies (hono, @opencode-ai/sdk, dockerode, tweetnacl)
+
+- [x] T001 Create sidecar project structure in apps/sidecar with Hono + TypeScript
+- [x] T002 Initialize sidecar dependencies (hono, @opencode-ai/sdk, dockerode)
 - [ ] T003 [P] Configure Docker build for sidecar container image
 - [ ] T004 [P] Create driver-interface package structure in packages/driver-interface
 - [ ] T005 [P] Create crypto-lib package for envelope encryption in packages/crypto-lib
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
+
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
 
 ### Contract Tests - Sidecar API
+
 - [ ] T006 [P] Contract test POST /internal/register in tests/contract/sidecar-register.test.ts
 - [ ] T007 [P] Contract test GET /internal/health in tests/contract/sidecar-health.test.ts
 - [ ] T008 [P] Contract test GET /internal/ready in tests/contract/sidecar-ready.test.ts
@@ -58,12 +64,14 @@
 - [ ] T010 [P] Contract test POST /internal/shutdown in tests/contract/sidecar-shutdown.test.ts
 
 ### Contract Tests - Convex Functions
+
 - [ ] T011 [P] Contract test sessions.provision action in tests/contract/convex-provision.test.ts
 - [ ] T012 [P] Contract test sessions.resume action in tests/contract/convex-resume.test.ts
 - [ ] T013 [P] Contract test sessions.export action in tests/contract/convex-export.test.ts
 - [ ] T014 [P] Contract test events.publish mutation in tests/contract/convex-events.test.ts
 
 ### Integration Tests
+
 - [ ] T015 [P] Integration test sidecar registration flow in tests/integration/sidecar-registration.test.ts
 - [ ] T016 [P] Integration test container provisioning in tests/integration/docker-provision.test.ts
 - [ ] T017 [P] Integration test key encryption/decryption in tests/integration/crypto-flow.test.ts
@@ -72,6 +80,7 @@
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 
 ### Sidecar Service Implementation
+
 - [ ] T019 Implement Hono server scaffold in apps/sidecar/src/server.ts
 - [ ] T020 Implement X25519 key generation in apps/sidecar/src/auth/keys.ts
 - [ ] T021 Implement registration endpoint in apps/sidecar/src/routes/internal.ts
@@ -82,6 +91,7 @@
 - [ ] T026 Add graceful shutdown handler in apps/sidecar/src/lifecycle/shutdown.ts
 
 ### Container Driver Implementation
+
 - [ ] T027 Define driver interface in packages/driver-interface/src/types.ts
 - [ ] T028 Implement Docker driver in convex/drivers/docker.ts
 - [ ] T029 Add volume management in convex/drivers/docker-volumes.ts
@@ -89,6 +99,7 @@
 - [ ] T031 Add container health monitoring in convex/drivers/docker-health.ts
 
 ### Missing Convex Functions
+
 - [ ] T032 Implement sessions.provision action in convex/sessions.ts
 - [ ] T033 Implement sessions.resume action in convex/sessions.ts
 - [ ] T034 Add internal.events.publish mutation in convex/events.ts
@@ -109,6 +120,7 @@
 - [ ] T043 End-to-end test complete session flow in tests/e2e/session-flow.test.ts
 
 ## Dependencies
+
 - Setup (T001-T005) before all tests
 - Tests (T006-T018) before implementation (T019-T042)
 - Sidecar core (T019-T026) before Docker driver usage
@@ -119,6 +131,7 @@
 ## Parallel Execution Examples
 
 ### Batch 1: Setup Tasks (After T001-T002)
+
 ```bash
 # Launch T003-T005 together:
 Task: "Configure Docker build for sidecar container image"
@@ -127,6 +140,7 @@ Task: "Create crypto-lib package for envelope encryption in packages/crypto-lib"
 ```
 
 ### Batch 2: Contract Tests (After setup complete)
+
 ```bash
 # Launch T006-T014 together:
 Task: "Contract test POST /internal/register in tests/contract/sidecar-register.test.ts"
@@ -141,6 +155,7 @@ Task: "Contract test events.publish mutation in tests/contract/convex-events.tes
 ```
 
 ### Batch 3: Integration Tests
+
 ```bash
 # Launch T015-T018 together:
 Task: "Integration test sidecar registration flow in tests/integration/sidecar-registration.test.ts"
@@ -150,6 +165,7 @@ Task: "Integration test session lifecycle in tests/integration/session-lifecycle
 ```
 
 ### Batch 4: Frontend Components (After T032-T036)
+
 ```bash
 # Launch T037-T042 together:
 Task: "Create SessionChat component in apps/web/app/components/session/chat.tsx"
@@ -161,6 +177,7 @@ Task: "Add ProviderKeyManager component in apps/web/app/components/settings/prov
 ```
 
 ## Notes
+
 - [P] tasks = different files, no dependencies
 - Verify tests fail before implementing
 - Commit after each task using conventional commits
@@ -168,16 +185,16 @@ Task: "Add ProviderKeyManager component in apps/web/app/components/settings/prov
 - Frontend components can develop in parallel once backend ready
 
 ## Task Generation Rules Applied
+
 1. **From Contracts**:
    - sidecar-api.ts → 5 contract tests (T006-T010)
    - convex-api.ts → 4 contract tests (T011-T014)
    - Each endpoint → implementation task
-   
 2. **From Data Model**:
    - Schema already implemented (no model tasks needed)
    - Missing Convex functions identified → T032-T036
-   
 3. **From Quickstart Scenarios**:
+
    - Registration flow → T015
    - Container provisioning → T016
    - Session lifecycle → T018
@@ -188,6 +205,7 @@ Task: "Add ProviderKeyManager component in apps/web/app/components/settings/prov
    - Dependencies clearly marked
 
 ## Validation Checklist
+
 - [x] All contracts have corresponding tests
 - [x] All missing implementations identified
 - [x] All tests come before implementation
@@ -196,4 +214,5 @@ Task: "Add ProviderKeyManager component in apps/web/app/components/settings/prov
 - [x] No task modifies same file as another [P] task
 
 ---
-*Tasks generated: 2025-09-08 | Total: 43 tasks*
+
+_Tasks generated: 2025-09-08 | Total: 43 tasks_
