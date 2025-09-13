@@ -216,6 +216,7 @@ _This section describes what the /tasks command will do - DO NOT execute during 
 - Generate tasks from Phase 1 design docs and existing implementation gaps:
 
 **Category 1: Sidecar Implementation (Priority 1)**
+
 - Task: Create Hono server scaffold with TypeScript
 - Task: Implement registration endpoint with X25519 key generation
 - Task: Integrate OpenCode SDK server startup
@@ -225,6 +226,7 @@ _This section describes what the /tasks command will do - DO NOT execute during 
 - Task: Implement graceful shutdown handling
 
 **Category 2: Container Provisioning (Priority 1)**
+
 - Task: Create Docker driver interface
 - Task: Implement container creation with dockerode
 - Task: Add volume mounting for session persistence
@@ -233,6 +235,7 @@ _This section describes what the /tasks command will do - DO NOT execute during 
 - Task: Create container health monitoring
 
 **Category 3: Missing Convex Functions (Priority 2)**
+
 - Task: Implement sessions.provision action
 - Task: Create sessions.resume action
 - Task: Add internal event publishing mutations
@@ -240,6 +243,7 @@ _This section describes what the /tasks command will do - DO NOT execute during 
 - Task: Create export.zip and export.github actions
 
 **Category 4: Frontend Components (Priority 2)**
+
 - Task: Create session chat interface component
 - Task: Implement real-time message streaming UI
 - Task: Add permissions modal component
@@ -248,6 +252,7 @@ _This section describes what the /tasks command will do - DO NOT execute during 
 - Task: Add provider key management UI
 
 **Category 5: Integration & Testing (Priority 3)**
+
 - Task: Write Convex function contract tests
 - Task: Create sidecar integration tests
 - Task: Add end-to-end session lifecycle tests
@@ -266,6 +271,7 @@ _This section describes what the /tasks command will do - DO NOT execute during 
 - Mark [P] for parallel execution where dependencies allow
 
 **Task Prioritization**:
+
 - P0: Sidecar + Docker driver (blocking everything else)
 - P1: Core Convex functions for session lifecycle
 - P2: Frontend UI components
@@ -296,7 +302,7 @@ _This checklist is updated during execution flow_
 - [x] Phase 0: Research complete (/plan command)
 - [x] Phase 1: Design complete (/plan command)
 - [x] Phase 2: Task planning complete (/plan command - describe approach only)
-- [ ] Phase 3: Tasks generated (/tasks command - ready to execute)
+- [x] Phase 3: Tasks generated (/tasks command - ready to execute)
 - [ ] Phase 4: Implementation complete
 - [ ] Phase 5: Validation passed
 

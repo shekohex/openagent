@@ -1,24 +1,24 @@
 /**
  * Sidecar API Contract Definitions
- * 
+ *
  * The sidecar is a thin wrapper around the OpenCode SDK server that:
  * 1. Manages secure registration with the orchestrator
  * 2. Starts and manages the OpenCode server using the SDK
  * 3. Handles secure key provisioning
  * 4. Bridges events between OpenCode and orchestrator
  * 5. Provides terminal access via WebSocket
- * 
+ *
  * Most API calls are proxied directly to the OpenCode server running internally.
  */
 
-import type { 
-  Session, 
-  Message, 
-  Part, 
-  Provider,
-  Config,
+import type {
   Agent,
-  Event 
+  Config,
+  Event,
+  Message,
+  Part,
+  Provider,
+  Session,
 } from "@opencode-ai/sdk";
 
 // ============================================================================
@@ -121,7 +121,7 @@ export const sidecarInternalEndpoints = {
 /**
  * These endpoints proxy directly to the OpenCode server running inside the sidecar.
  * The sidecar adds authentication and monitoring but doesn't modify the API.
- * 
+ *
  * The OpenCode server is started using:
  * ```typescript
  * import { createOpencodeServer } from "@opencode-ai/sdk";
@@ -161,7 +161,7 @@ export const opencodeProxyEndpoints = {
   "/session/{id}/abort": {
     POST: "Abort running session",
   },
-  
+
   // Configuration
   "/config": {
     GET: "Get configuration",
@@ -169,7 +169,7 @@ export const opencodeProxyEndpoints = {
   "/config/providers": {
     GET: "List available providers and models",
   },
-  
+
   // File Operations
   "/find": {
     GET: "Search text in files",
@@ -180,12 +180,12 @@ export const opencodeProxyEndpoints = {
   "/file": {
     GET: "Read file content",
   },
-  
+
   // Agents
   "/agent": {
     GET: "List available agents",
   },
-  
+
   // Authentication - Special handling
   "/auth/{providerId}": {
     PUT: "Set provider credentials (injected by sidecar)",
@@ -281,7 +281,7 @@ export const terminalWebSocket = {
       method: "query" as const,
       param: "token", // One-time token from orchestrator
     },
-    
+
     // Client → Server messages
     clientMessages: {
       stdin: {
@@ -294,7 +294,7 @@ export const terminalWebSocket = {
         rows: number,
       },
     },
-    
+
     // Server → Client messages
     serverMessages: {
       stdout: {
@@ -340,7 +340,7 @@ export const implementation = {
    * 9. Start forwarding events to orchestrator
    */
   startup: "See sequence above",
-  
+
   /**
    * Request handling:
    * - /internal/* endpoints: Handled directly by sidecar
@@ -349,7 +349,7 @@ export const implementation = {
    * - All other endpoints: Proxy to OpenCode server with auth check
    */
   requestRouting: "See routing rules above",
-  
+
   /**
    * Security:
    * - All requests except /internal/register require sidecarAuthToken
@@ -358,7 +358,7 @@ export const implementation = {
    * - Terminal runs as non-root user with limited capabilities
    */
   security: "See security notes above",
-  
+
   /**
    * Error handling:
    * - OpenCode server failures trigger sidecar.error events
