@@ -36,6 +36,7 @@ describe("Interface Usage Demonstration Tests", () => {
     });
 
     it("should demonstrate driver health check", async () => {
+      await new Promise(resolve => setTimeout(resolve, 1));
       const dockerHealth = await dockerDriver.healthCheck();
       const localHealth = await localDriver.healthCheck();
 

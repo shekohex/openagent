@@ -23,19 +23,11 @@ export class MockDockerDriver implements ContainerDriver {
   readonly version = "1.0.0";
 
   // Constants for mock behavior
-  private readonly DEFAULT_DELAY_MS = 100;
   private readonly MAX_CPU_CORES = 4;
   private readonly DEFAULT_TIMEOUT_MS = 10_000;
-  private readonly HEALTH_CHECK_DELAY_MS = 30;
   private readonly MIN_STOP_TIMEOUT_MS = 5000;
-  private readonly REMOVE_DELAY_MS = 50;
-  private readonly CREATE_VOLUME_DELAY_MS = 150;
-  private readonly START_DELAY_MS = 20;
-  private readonly LOG_DELAY_MS = 40;
-  private readonly NETWORK_DELAY_MS = 80;
   private readonly PORT = 8080;
   private readonly DEFAULT_LOG_TAIL = 100;
-  private readonly HEALTH_CHECK_DIVISOR = 3;
 
   private readonly containers = new Map<string, ContainerInstance>();
   private readonly volumes = new Map<string, Volume>();
@@ -44,8 +36,6 @@ export class MockDockerDriver implements ContainerDriver {
   private startTime = Date.now();
 
   async createContainer(config: ContainerConfig): Promise<ContainerInstance> {
-    await this.simulateDelay(this.DEFAULT_DELAY_MS);
-
     const id = `container-${this.nextId++}`;
     const name = `${config.sessionId}-container`;
 
@@ -71,18 +61,18 @@ export class MockDockerDriver implements ContainerDriver {
     };
 
     this.containers.set(id, container);
+    await Promise.resolve();
     return container;
   }
 
   async startContainer(id: string): Promise<void> {
-    await this.simulateDelay(this.START_DELAY_MS);
-
     const container = this.containers.get(id);
     if (!container) {
       throw new ContainerNotFoundError(id);
     }
 
     if (container.status === "running") {
+      await Promise.resolve();
       return;
     }
 
@@ -90,17 +80,17 @@ export class MockDockerDriver implements ContainerDriver {
     container.state = "running";
     container.startedAt = Date.now();
     this.containers.set(id, container);
+    await Promise.resolve();
   }
 
   async stopContainer(id: string, options?: StopOptions): Promise<void> {
-    await this.simulateDelay(this.DEFAULT_DELAY_MS);
-
     const container = this.containers.get(id);
     if (!container) {
       throw new ContainerNotFoundError(id);
     }
 
     if (container.status === "stopped") {
+      await Promise.resolve();
       return;
     }
 
@@ -114,11 +104,10 @@ export class MockDockerDriver implements ContainerDriver {
     container.status = "stopped";
     container.state = "terminated";
     this.containers.set(id, container);
+    await Promise.resolve();
   }
 
   async removeContainer(id: string): Promise<void> {
-    await this.simulateDelay(this.REMOVE_DELAY_MS);
-
     const container = this.containers.get(id);
     if (!container) {
       throw new ContainerNotFoundError(id);
@@ -129,16 +118,15 @@ export class MockDockerDriver implements ContainerDriver {
     }
 
     this.containers.delete(id);
+    await Promise.resolve();
   }
 
   async getContainer(id: string): Promise<ContainerInstance | null> {
-    await this.simulateDelay(this.START_DELAY_MS);
+    await Promise.resolve();
     return this.containers.get(id) || null;
   }
 
   async listContainers(filter?: ContainerFilter): Promise<ContainerInstance[]> {
-    await this.simulateDelay(this.START_DELAY_MS + 10);
-
     let containers = Array.from(this.containers.values());
 
     if (filter) {
@@ -160,12 +148,12 @@ export class MockDockerDriver implements ContainerDriver {
       }
     }
 
+    await Promise.resolve();
     return containers;
   }
 
   async getContainerLogs(id: string, options?: LogOptions): Promise<string> {
-    await this.simulateDelay(this.LOG_DELAY_MS);
-
+    await Promise.resolve();
     const container = this.containers.get(id);
     if (!container) {
       throw new ContainerNotFoundError(id);
@@ -183,10 +171,7 @@ export class MockDockerDriver implements ContainerDriver {
   }
 
   async healthCheck(): Promise<DriverHealth> {
-    await this.simulateDelay(
-      this.HEALTH_CHECK_DELAY_MS / this.HEALTH_CHECK_DIVISOR
-    );
-
+    await Promise.resolve();
     const runningContainers = Array.from(this.containers.values()).filter(
       (c) => c.status === "running"
     ).length;
@@ -207,8 +192,7 @@ export class MockDockerDriver implements ContainerDriver {
   }
 
   async isContainerHealthy(id: string): Promise<boolean> {
-    await this.simulateDelay(this.START_DELAY_MS);
-
+    await Promise.resolve();
     const container = this.containers.get(id);
     if (!container) {
       return false;
@@ -218,8 +202,7 @@ export class MockDockerDriver implements ContainerDriver {
   }
 
   async createVolume(config: VolumeConfig): Promise<Volume> {
-    await this.simulateDelay(this.CREATE_VOLUME_DELAY_MS);
-
+    await Promise.resolve();
     const id = `volume-${this.nextId++}`;
     const volume: Volume = {
       id,
@@ -231,23 +214,21 @@ export class MockDockerDriver implements ContainerDriver {
     };
 
     this.volumes.set(id, volume);
+    await Promise.resolve();
     return volume;
   }
 
   async removeVolume(id: string): Promise<void> {
-    await this.simulateDelay(this.REMOVE_DELAY_MS + 10);
-
     const volume = this.volumes.get(id);
     if (!volume) {
       throw new VolumeNotFoundError(id);
     }
 
     this.volumes.delete(id);
+    await Promise.resolve();
   }
 
   async createNetwork(config: NetworkConfig): Promise<Network> {
-    await this.simulateDelay(this.NETWORK_DELAY_MS - 10);
-
     const id = `network-${this.nextId++}`;
     const network: Network = {
       id,
@@ -258,22 +239,18 @@ export class MockDockerDriver implements ContainerDriver {
     };
 
     this.networks.set(id, network);
+    await Promise.resolve();
     return network;
   }
 
   async removeNetwork(id: string): Promise<void> {
-    await this.simulateDelay(this.REMOVE_DELAY_MS);
-
     const network = this.networks.get(id);
     if (!network) {
       throw new NetworkNotFoundError(id);
     }
 
     this.networks.delete(id);
-  }
-
-  private async simulateDelay(ms: number): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, ms));
+    await Promise.resolve();
   }
 
   reset(): void {
