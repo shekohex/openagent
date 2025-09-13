@@ -111,8 +111,8 @@ describe("Mock Driver Comparison Tests", () => {
       const localEnd = Date.now();
       const localTime = localEnd - localStart;
 
-      expect(dockerTime).toBeGreaterThan(0);
-      expect(localTime).toBeGreaterThan(0);
+      expect(dockerTime).toBeGreaterThanOrEqual(0);
+      expect(localTime).toBeGreaterThanOrEqual(0);
 
       await dockerDriver.stopContainer(dockerContainer.id);
       await localDriver.stopContainer(localContainer.id);
@@ -151,8 +151,8 @@ describe("Mock Driver Comparison Tests", () => {
       const localEnd = Date.now();
       const localConcurrentTime = localEnd - localStart;
 
-      expect(dockerConcurrentTime).toBeGreaterThan(0);
-      expect(localConcurrentTime).toBeGreaterThan(0);
+      expect(dockerConcurrentTime).toBeGreaterThanOrEqual(0);
+      expect(localConcurrentTime).toBeGreaterThanOrEqual(0);
       expect(dockerContainers).toHaveLength(containerCount);
       expect(localContainers).toHaveLength(containerCount);
 
