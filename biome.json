@@ -4,6 +4,7 @@
     "ignoreUnknown": false,
     "includes": [
       "**",
+      "!.specify/specs",
       "!**/.next",
       "!**/dist",
       "!**/.turbo",
