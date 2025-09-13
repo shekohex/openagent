@@ -6,6 +6,7 @@ import {
 import { api, components, internal } from "./_generated/api";
 import type { DataModel, Id } from "./_generated/dataModel";
 import { query } from "./_generated/server";
+import type { Email } from "./schema";
 
 // Initialize the component
 export const betterAuthComponent: BetterAuth<Id<"users">> = new BetterAuth<
@@ -29,7 +30,7 @@ export const {
   // Must create a user and return the user id
   onCreateUser: (ctx, user) => {
     return ctx.db.insert("users", {
-      email: user.email,
+      email: user.email as Email,
       name: user.name,
       emailVerificationTime: user.emailVerified ? Date.now() : undefined,
       image: user.image === null ? undefined : user.image,

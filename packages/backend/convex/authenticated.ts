@@ -1,11 +1,11 @@
+import type { Auth } from "convex/server";
+import type { GenericId } from "convex/values";
 import {
   customAction,
   customCtx,
   customMutation,
   customQuery,
 } from "convex-helpers/server/customFunctions";
-import type { Auth } from "convex/server";
-import type { GenericId } from "convex/values";
 import { action, internalMutation, mutation, query } from "./_generated/server";
 
 export const TOKEN_SUB_CLAIM_DIVIDER = "|";

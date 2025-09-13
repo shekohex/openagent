@@ -1,6 +1,6 @@
+import { SiGithub } from "@icons-pack/react-simple-icons";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
-import { SiGithub } from "@icons-pack/react-simple-icons";
 
 const isGitHubAuthEnabled =
   import.meta.env.VITE_AUTH_GITHUB_ID &&
