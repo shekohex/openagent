@@ -1,5 +1,5 @@
-import { convexTest, type TestConvex } from "convex-test";
 import type { GenericSchema, SchemaDefinition } from "convex/server";
+import { convexTest, type TestConvex } from "convex-test";
 
 // Global modules variable - will be set by setupFiles during test initialization
 let _convexModules: Record<string, () => Promise<unknown>>;
