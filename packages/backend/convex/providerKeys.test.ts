@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createConvexTest } from "../test-utils/utils";
 import { api } from "./_generated/api";
-import schema from "./schema";
+import schema, { type Email } from "./schema";
 
 describe("Provider Keys", async () => {
   const t = await createConvexTest(schema);
@@ -10,7 +10,7 @@ describe("Provider Keys", async () => {
   async function createTestUser(_subject: string, name: string) {
     const userId = await t.run(async (ctx) => {
       return ctx.db.insert("users", {
-        email: `${name}@example.com`,
+        email: `${name}@example.com` as Email,
         name,
       });
     });
