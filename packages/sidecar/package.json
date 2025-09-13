@@ -3,10 +3,17 @@
   "version": "1.0.0",
   "main": "dist/src/index.js",
   "scripts": {
-    "build": "tsc -b"
+    "build": "tsc -b",
+    "dev": "bun run --hot src/index.ts",
+    "check-types": "tsc --noEmit",
+    "test": "bun run test:once",
+    "test:once": "echo 'Running tests once'"
   },
   "dependencies": {
-    "@opencode-ai/sdk": "^0.6.4"
+    "@hono/zod-openapi": "^1.1.0",
+    "@opencode-ai/sdk": "^0.7.9",
+    "hono": "^4.9.7",
+    "zod": "^4.1.8"
   },
   "devDependencies": {
     "typescript": "^5.9.2"
