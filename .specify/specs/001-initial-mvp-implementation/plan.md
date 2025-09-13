@@ -142,6 +142,8 @@ tests/
 └── e2e/
 ```
 
+Note: In this repository, the Convex backend lives under `packages/backend/convex` instead of the repo root `convex/`. The tasks’ Path Conventions already allow both; we will adopt `packages/backend/convex` going forward for driver implementations and backend changes.
+
 **Structure Decision**: Option 2 - Web application structure (frontend + backend architecture)
 
 ## Phase 0: Outline & Research
