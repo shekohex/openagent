@@ -341,7 +341,3 @@ try {
   console.log(e);
 }
 ```
-
-## Convex Section
-
-Follow the guidelines in @./CONVEX.md
