@@ -1,6 +1,3 @@
-import Loader from "@/components/loader";
-import { Toaster } from "@/components/ui/sonner";
-import { fetchSession, getCookieName } from "@/lib/server-auth-utils";
 import type { ConvexQueryClient } from "@convex-dev/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -14,6 +11,9 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
 import { getCookie, getWebRequest } from "@tanstack/react-start/server";
 import { AuthLoading, type ConvexReactClient } from "convex/react";
+import Loader from "@/components/loader";
+import { Toaster } from "@/components/ui/sonner";
+import { fetchSession, getCookieName } from "@/lib/server-auth-utils";
 import Header from "../components/header";
 import appCss from "../index.css?url";
 
