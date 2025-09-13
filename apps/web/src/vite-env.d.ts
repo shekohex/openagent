@@ -15,6 +15,9 @@ interface ImportMetaEnv {
   readonly VITE_CONVEX_URL: string;
 
   readonly VITE_CONVEX_SITE_URL: string;
+
+  readonly VITE_AUTH_GITHUB_ID: string | undefined;
+  readonly VITE_AUTH_GITHUB_SECRET: string | undefined;
 }
 
 interface ImportMeta {
