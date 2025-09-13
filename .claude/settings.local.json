@@ -14,6 +14,7 @@
       "Bash(bun check)",
       "Bash(bun run test:*)",
       "Bash(bun ultracite fix:*)",
+      "Bash(bun ultracite check:*)",
       "mcp__firecrawl-mcp__firecrawl_scrape",
       "mcp__firecrawl-mcp__firecrawl_search"
     ],
