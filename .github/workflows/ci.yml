@@ -1,0 +1,164 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - release/**
+    paths-ignore:
+      - '**/*.md'
+      - docs/**
+      - .vscode/**
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - '**/*.md'
+      - docs/**
+      - .vscode/**
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  # Ensure CI-mode for tools like Vitest
+  CI: 'true'
+
+jobs:
+  lint:
+    name: Lint (Biome)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # PR review comments need write permission to pull-requests
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # Inline PR review comments on diffs
+      - name: Biome reviewdog (PR)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: mongolyy/reviewdog-action-biome@v1
+        with:
+          reporter: github-pr-review
+          fail_on_error: true
+
+      # GitHub-native annotations for pushes (no PR spam)
+      - name: Setup Bun
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: oven-sh/setup-bun@v2
+        with:
+          # Reads bun version from package.json -> packageManager: "bun@x.y.z"
+          bun-version-file: package.json
+
+      - name: Biome (Checks annotations)
+        if: ${{ github.event_name != 'pull_request' }}
+        run: bunx @biomejs/biome ci --reporter=github .
+
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Cache Bun downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            ~/.cache/bun
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock', '**/bun.lockb') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Enable Turborepo cache
+        uses: rharkor/caching-for-turbo@v2
+
+      - name: Run type checks
+        run: bun run check-types
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Cache Bun downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            ~/.cache/bun
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock', '**/bun.lockb') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Enable Turborepo cache
+        uses: rharkor/caching-for-turbo@v2
+
+      - name: Run tests (turbo test)
+        run: bun run test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [lint, typecheck, test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Cache Bun downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            ~/.cache/bun
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock', '**/bun.lockb') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Enable Turborepo cache
+        uses: rharkor/caching-for-turbo@v2
+
+      - name: Build (turbo build)
+        run: bun build
