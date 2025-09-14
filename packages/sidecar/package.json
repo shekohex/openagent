@@ -6,6 +6,7 @@
     "build": "tsc",
     "dev": "bun run --hot src/server.ts",
     "check-types": "tsc --noEmit",
+    "check-types:tests": "tsc -p tsconfig.tests.json --noEmit",
     "test": "bun run test:once",
     "test:once": "vitest run"
   },
