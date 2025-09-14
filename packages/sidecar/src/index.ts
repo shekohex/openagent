@@ -40,4 +40,5 @@ const app = new OpenAPIHono<{
     });
   });
 
+export type AppType = typeof app;
 export default app;
