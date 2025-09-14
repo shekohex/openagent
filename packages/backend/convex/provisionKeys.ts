@@ -1,10 +1,10 @@
-import { v } from "convex/values";
-import { CryptoError } from "../lib/crypto";
 import {
+  CryptoError,
   KeyExchange,
   type SealedPayload,
   SecureProviderKeyDelivery,
-} from "../lib/keyExchange";
+} from "@openagent/crypto-lib";
+import { v } from "convex/values";
 import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { internalMutation } from "./_generated/server";
