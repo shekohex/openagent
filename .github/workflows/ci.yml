@@ -6,13 +6,13 @@ on:
       - main
       - release/**
     paths-ignore:
-      - '**/*.md'
+      - "**/*.md"
       - docs/**
       - .vscode/**
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore:
-      - '**/*.md'
+      - "**/*.md"
       - docs/**
       - .vscode/**
 
@@ -29,7 +29,7 @@ defaults:
 
 env:
   # Ensure CI-mode for tools like Vitest
-  CI: 'true'
+  CI: "true"
 
 jobs:
   lint:
@@ -165,4 +165,4 @@ jobs:
         uses: rharkor/caching-for-turbo@v2.2.1
 
       - name: Build (turbo build)
-        run: bun build
+        run: bun run build
