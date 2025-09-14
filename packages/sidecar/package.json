@@ -4,7 +4,7 @@
   "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc -b",
-    "dev": "bun run --hot src/index.ts",
+    "dev": "bun run --hot src/server.ts",
     "check-types": "tsc --noEmit",
     "test": "bun run test:once",
     "test:once": "echo 'Running tests once'"
@@ -16,6 +16,8 @@
     "zod": "^4.1.8"
   },
   "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/bun": "^1.1.0",
     "typescript": "^5.9.2"
   }
 }
