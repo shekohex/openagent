@@ -1,4 +1,4 @@
 import { testClient } from "hono/testing";
-import app from "@/index";
+import app from "../../../src/index";
 
 export const client = testClient(app);
