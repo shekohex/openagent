@@ -13,35 +13,31 @@ import terminalRoutes from "./routes/terminal";
 
 const app = new OpenAPIHono<{
   Variables: RequestIdVariables;
-}>();
-
-app.use(logger());
-app.use(secureHeaders());
-app.use("*", requestId());
-app.use(security());
-app.use("*", errorHandler());
-
-app.get("/", (c) => {
-  const rid = c.get("requestId");
-  return c.json({
-    message: "OpenAgent Sidecar",
-    requestId: rid,
-    timestamp: new Date().toISOString(),
+}>()
+  .doc("/doc", {
+    openapi: "3.0.0",
+    info: {
+      version: "1.0.0",
+      title: "OpenAgent Sidecar",
+      description: "Background coding agent sidecar service",
+    },
+  })
+  .use(logger())
+  .use(secureHeaders())
+  .use("*", requestId())
+  .use(security())
+  .use("*", errorHandler())
+  .route("/internal", internalRoutes)
+  .route("/opencode", opencodeRoutes)
+  .route("/events", eventsRoutes)
+  .route("/terminal", terminalRoutes)
+  .get("/", (c) => {
+    const rid = c.get("requestId");
+    return c.json({
+      message: "OpenAgent Sidecar",
+      requestId: rid,
+      timestamp: new Date().toISOString(),
+    });
   });
-});
-
-app.route("/internal", internalRoutes);
-app.route("/opencode", opencodeRoutes);
-app.route("/events", eventsRoutes);
-app.route("/terminal", terminalRoutes);
-
-app.doc("/doc", {
-  openapi: "3.0.0",
-  info: {
-    version: "1.0.0",
-    title: "OpenAgent Sidecar",
-    description: "Background coding agent sidecar service",
-  },
-});
 
 export default app;

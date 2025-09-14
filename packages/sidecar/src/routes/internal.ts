@@ -1,8 +1,11 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import type { RequestIdVariables } from "hono/request-id";
 import { z } from "zod";
 import { HTTP_STATUS } from "../constants";
 
-const app = new OpenAPIHono();
+const app = new OpenAPIHono<{
+  Variables: RequestIdVariables;
+}>();
 
 const healthRoute = createRoute({
   method: "get",
@@ -22,13 +25,6 @@ const healthRoute = createRoute({
       },
     },
   },
-});
-
-app.openapi(healthRoute, (c) => {
-  return c.json({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-  });
 });
 
 const readyRoute = createRoute({
@@ -75,25 +71,33 @@ const registerRoute = createRoute({
   },
 });
 
-app.openapi(readyRoute, (c) => {
-  return c.json({
-    status: "ok",
-    ready: true,
-    timestamp: new Date().toISOString(),
-  });
-});
-
-app.openapi(registerRoute, (c) => {
-  return c.json(
-    {
-      success: false,
-      error: {
-        code: "NOT_IMPLEMENTED",
-        message: "Session registration not yet implemented",
+app
+  .openapi(readyRoute, (c) => {
+    return c.json({
+      status: "ok",
+      ready: true,
+      timestamp: new Date().toISOString(),
+    });
+  })
+  .openapi(registerRoute, (c) => {
+    return c.json(
+      {
+        success: false,
+        error: {
+          code: "NOT_IMPLEMENTED",
+          message: "Session registration not yet implemented",
+        },
       },
-    },
-    HTTP_STATUS.NOT_IMPLEMENTED
-  );
-});
+      HTTP_STATUS.NOT_IMPLEMENTED
+    );
+  })
+  .openapi(healthRoute, (c) => {
+    return c.json({
+      status: "ok",
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+export type InternalRoutes = typeof app;
 
 export default app;
