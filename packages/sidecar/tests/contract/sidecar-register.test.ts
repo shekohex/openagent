@@ -1,7 +1,9 @@
-import { expect, test } from "vitest";
+import { expect, expectTypeOf, test } from "vitest";
 import { client } from "./_utils/client";
 
 test("POST /internal/register returns 501 with error envelope", async () => {
+  // Type surface sanity check
+  expectTypeOf(client.internal.register.$post).toBeFunction();
   const res = await client.internal.register.$post();
   expect(res.status).toBe(501);
   expect(res.headers.get("content-type") ?? "").toMatch(/application\/json/i);
