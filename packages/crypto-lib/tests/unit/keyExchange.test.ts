@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CryptoError } from "./crypto";
+import { CryptoError } from "../../src";
 import {
   type EphemeralKeyPair,
   KeyExchange,
   type SealedPayload,
   SecureProviderKeyDelivery,
-} from "./keyExchange";
+} from "../../src";
 
 describe("ECDH Key Exchange", () => {
   describe("Ephemeral Key Generation", () => {

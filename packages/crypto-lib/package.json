@@ -1,0 +1,25 @@
+{
+  "name": "@openagent/crypto-lib",
+  "version": "1.0.0",
+  "description": "Envelope encryption, key management, and key exchange utilities for OpenAgent",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "test": "bun run test:once",
+    "test:once": "vitest run",
+    "test:coverage": "vitest run --coverage --coverage.provider=istanbul --coverage.reporter=text"
+  },
+  "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
+    "@types/node": "^24.3.1",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
