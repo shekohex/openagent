@@ -1,4 +1,3 @@
-// biome-ignore lint/performance/noBarrelFile: This is a package index file that needs to export multiple modules
 export {
   AuthenticationError,
   AuthorizationError,
