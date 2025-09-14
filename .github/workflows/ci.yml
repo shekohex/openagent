@@ -49,10 +49,10 @@ jobs:
       # Inline PR review comments on diffs
       - name: Biome reviewdog (PR)
         if: ${{ github.event_name == 'pull_request' }}
-        uses: mongolyy/reviewdog-action-biome@v1.6.3
+        uses: mongolyy/reviewdog-action-biome@v2.3.0
         with:
           reporter: github-pr-review
-          fail_on_error: true
+          fail_level: error
 
       # GitHub-native annotations for pushes (no PR spam)
       - name: Setup Bun
