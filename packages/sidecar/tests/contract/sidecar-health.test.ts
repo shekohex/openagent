@@ -1,8 +1,10 @@
-import { expect, test } from "vitest";
+import { expect, expectTypeOf, test } from "vitest";
 import { client } from "./_utils/client";
 import { isISO8601 } from "./_utils/matchers";
 
 test("GET /internal/health returns 200 with expected shape", async () => {
+  // Type surface sanity check
+  expectTypeOf(client.internal.health.$get).toBeFunction();
   const res = await client.internal.health.$get();
   expect(res.status).toBe(200);
   expect(res.headers.get("content-type") ?? "").toMatch(/application\/json/i);
