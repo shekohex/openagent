@@ -1,5 +1,6 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { z } from "zod";
+import { HTTP_STATUS } from "../constants";
 
 const app = new OpenAPIHono();
 
@@ -91,7 +92,7 @@ app.openapi(registerRoute, (c) => {
         message: "Session registration not yet implemented",
       },
     },
-    501
+    HTTP_STATUS.NOT_IMPLEMENTED
   );
 });
 
