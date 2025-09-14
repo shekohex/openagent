@@ -1,3 +1,4 @@
+import { expect, test } from "vitest";
 import { client } from "./_utils/client";
 import { isISO8601 } from "./_utils/matchers";
 

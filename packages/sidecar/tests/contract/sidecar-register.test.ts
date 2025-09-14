@@ -1,3 +1,4 @@
+import { expect, test } from "vitest";
 import { client } from "./_utils/client";
 
 test("POST /internal/register returns 501 with error envelope", async () => {
