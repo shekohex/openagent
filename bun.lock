@@ -120,7 +120,7 @@
       "version": "1.0.0",
       "dependencies": {
         "@hono/zod-openapi": "^1.1.0",
-        "@opencode-ai/sdk": "^0.7.9",
+        "@opencode-ai/sdk": "0.8.0",
         "hono": "^4.9.7",
         "zod": "^4.1.8",
       },
@@ -128,6 +128,7 @@
         "@types/bun": "^1.1.0",
         "@types/node": "^22.0.0",
         "typescript": "^5.9.2",
+        "vitest": "3.2.4",
       },
     },
   },
@@ -446,7 +447,7 @@
 
     "@openagent/sidecar": ["@openagent/sidecar@workspace:packages/sidecar"],
 
-    "@opencode-ai/sdk": ["@opencode-ai/sdk@0.7.9", "", { "dependencies": { "@hey-api/openapi-ts": "0.81.0" } }, "sha512-FVL/NOj5DaUK9eupgFbfdO47L4zhBh03NBFrBQj/a2Bph0k4uXRSFy8ZeXUrx4Pwuj4VoteE3JlRKeCN2Muq0w=="],
+    "@opencode-ai/sdk": ["@opencode-ai/sdk@0.8.0", "", { "dependencies": { "@hey-api/openapi-ts": "0.81.0" } }, "sha512-MekFgqYcsdNyX2mNq12faigEq41hVn5jDhq9YL5QlatUzhd8g7iQY192bHi9Kml0e0qdGWfbDx6qjLlYsy4EfQ=="],
 
     "@oslojs/asn1": ["@oslojs/asn1@1.0.0", "", { "dependencies": { "@oslojs/binary": "1.0.0" } }, "sha512-zw/wn0sj0j0QKbIXfIlnEcTviaCzYOY3V5rAyjR6YtOByFtJiT574+8p9Wlach0lZH9fddD4yb9laEAIl4vXQA=="],
 
