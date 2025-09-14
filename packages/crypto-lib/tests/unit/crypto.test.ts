@@ -15,7 +15,7 @@ import {
   uint8ArrayToBase64,
   uint8ArrayToBase64Url,
   zeroMemory,
-} from "./crypto";
+} from "../../src";
 
 describe("Cryptographic Operations", () => {
   describe("Random Number Generation", () => {
