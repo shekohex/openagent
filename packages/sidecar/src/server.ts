@@ -8,15 +8,17 @@ const server = serve({
   hostname: config.host,
 });
 
+const SHUTDOWN_TIMEOUT_MS = 1000;
+
 const gracefulShutdown = (signal: string) => {
   console.log(`\n🛑 Received ${signal}, shutting down gracefully...`);
 
   server.stop();
 
   setTimeout(() => {
-    console.log(`⏰ Shutdown timeout exceeded, forcing exit`);
+    console.log("⏰ Shutdown timeout exceeded, forcing exit");
     process.exit(1);
-  }, 5000);
+  }, SHUTDOWN_TIMEOUT_MS);
 };
 
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
