@@ -1,7 +1,9 @@
 import { HOUR, RateLimiter } from "@convex-dev/rate-limiter";
+import {
+  CryptoError,
+  getDefaultEnvelopeEncryption,
+} from "@openagent/crypto-lib";
 import { v } from "convex/values";
-import { CryptoError } from "../lib/crypto";
-import { getDefaultEnvelopeEncryption } from "../lib/envelope";
 import { components } from "./_generated/api";
 import { internalMutation, internalQuery } from "./_generated/server";
 import {

@@ -1,5 +1,5 @@
+import { getDefaultEnvelopeEncryption } from "@openagent/crypto-lib";
 import { v } from "convex/values";
-import { getDefaultEnvelopeEncryption } from "../lib/envelope";
 import { internal } from "./_generated/api";
 import { authenticatedInternalMutation } from "./authenticated";
 
