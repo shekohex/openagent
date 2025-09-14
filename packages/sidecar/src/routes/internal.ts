@@ -3,10 +3,6 @@ import type { RequestIdVariables } from "hono/request-id";
 import { z } from "zod";
 import { HTTP_STATUS } from "../constants";
 
-const app = new OpenAPIHono<{
-  Variables: RequestIdVariables;
-}>();
-
 const healthRoute = createRoute({
   method: "get",
   path: "/health",
@@ -71,16 +67,21 @@ const registerRoute = createRoute({
   },
 });
 
-app
-  .openapi(readyRoute, (c) => {
-    return c.json({
-      status: "ok",
-      ready: true,
-      timestamp: new Date().toISOString(),
-    });
-  })
-  .openapi(registerRoute, (c) => {
-    return c.json(
+const app = new OpenAPIHono<{
+  Variables: RequestIdVariables;
+}>()
+  .openapi(readyRoute, (c) =>
+    c.json(
+      {
+        status: "ok",
+        ready: true,
+        timestamp: new Date().toISOString(),
+      },
+      HTTP_STATUS.OK
+    )
+  )
+  .openapi(registerRoute, (c) =>
+    c.json(
       {
         success: false,
         error: {
@@ -89,14 +90,19 @@ app
         },
       },
       HTTP_STATUS.NOT_IMPLEMENTED
-    );
-  })
-  .openapi(healthRoute, (c) => {
-    return c.json({
-      status: "ok",
-      timestamp: new Date().toISOString(),
-    });
-  });
+    )
+  )
+  .openapi(healthRoute, (c) =>
+    c.json(
+      {
+        status: "ok",
+        timestamp: new Date().toISOString(),
+      },
+      HTTP_STATUS.OK
+    )
+  );
+
+// (no-op) previous unchained block removed in favor of a single chained creation
 
 export type InternalRoutes = typeof app;
 
