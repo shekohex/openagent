@@ -51,5 +51,17 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["packages/sidecar/tests/**/*.test-d.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noMagicNumbers": "off"
+          }
+        }
+      }
+    }
+  ],
   "extends": ["ultracite"]
 }
