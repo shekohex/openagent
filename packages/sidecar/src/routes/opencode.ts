@@ -1,7 +1,7 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import type { RequestIdVariables } from "hono/request-id";
-import { HTTP_STATUS } from "../constants";
 import { z } from "zod";
+import { HTTP_STATUS } from "../constants";
 
 const indexRoute = createRoute({
   method: "get",
@@ -29,19 +29,18 @@ const indexRoute = createRoute({
 // Ensure the same Env (Variables) type as the root app so .route() remains type-safe
 const app = new OpenAPIHono<{
   Variables: RequestIdVariables;
-}>()
-  .openapi(indexRoute, (c) =>
-    c.json(
-      {
-        success: false,
-        error: {
-          code: "NOT_IMPLEMENTED",
-          message: "OpenCode routes not yet implemented",
-        },
+}>().openapi(indexRoute, (c) =>
+  c.json(
+    {
+      success: false,
+      error: {
+        code: "NOT_IMPLEMENTED",
+        message: "OpenCode routes not yet implemented",
       },
-      HTTP_STATUS.NOT_IMPLEMENTED
-    )
-  );
+    },
+    HTTP_STATUS.NOT_IMPLEMENTED
+  )
+);
 
 // unified chaining above
 

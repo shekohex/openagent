@@ -67,6 +67,80 @@ const registerRoute = createRoute({
   },
 });
 
+const updateKeysRoute = createRoute({
+  method: "put",
+  path: "/update-keys",
+  summary: "Update provider keys",
+  description: "Rotate/update encrypted provider keys for the sidecar",
+  request: {
+    headers: z.object({ Authorization: z.string().optional() }).optional(),
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            encryptedProviderKeys: z.array(
+              z.object({
+                provider: z.string(),
+                encryptedKey: z.string(),
+                nonce: z.string(),
+              })
+            ),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    501: {
+      description: "Not Implemented",
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.object({
+              code: z.literal("NOT_IMPLEMENTED"),
+              message: z.string(),
+            }),
+          }),
+        },
+      },
+    },
+  },
+});
+
+const shutdownRoute = createRoute({
+  method: "post",
+  path: "/shutdown",
+  summary: "Graceful shutdown",
+  description: "Initiate a graceful shutdown with optional delay",
+  request: {
+    headers: z.object({ Authorization: z.string().optional() }).optional(),
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({ gracePeriodMs: z.number().optional() }).optional(),
+        },
+      },
+    },
+  },
+  responses: {
+    501: {
+      description: "Not Implemented",
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.object({
+              code: z.literal("NOT_IMPLEMENTED"),
+              message: z.string(),
+            }),
+          }),
+        },
+      },
+    },
+  },
+});
+
 const app = new OpenAPIHono<{
   Variables: RequestIdVariables;
 }>()
@@ -99,6 +173,30 @@ const app = new OpenAPIHono<{
         timestamp: new Date().toISOString(),
       },
       HTTP_STATUS.OK
+    )
+  )
+  .openapi(updateKeysRoute, (c) =>
+    c.json(
+      {
+        success: false,
+        error: {
+          code: "NOT_IMPLEMENTED",
+          message: "Key update not yet implemented",
+        },
+      },
+      HTTP_STATUS.NOT_IMPLEMENTED
+    )
+  )
+  .openapi(shutdownRoute, (c) =>
+    c.json(
+      {
+        success: false,
+        error: {
+          code: "NOT_IMPLEMENTED",
+          message: "Shutdown not yet implemented",
+        },
+      },
+      HTTP_STATUS.NOT_IMPLEMENTED
     )
   );
 
