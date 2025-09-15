@@ -8,9 +8,7 @@ export default defineConfig({
     typecheck: {
       enabled: true,
       // Only pick up dedicated type test files
-      include: [
-        "tests/**/*.test-d.ts",
-      ],
+      include: ["tests/**/*.test-d.ts"],
       // Use a test-specific tsconfig that includes test files
       tsconfig: "./tsconfig.tests.json",
     },

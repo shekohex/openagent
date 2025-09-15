@@ -1,7 +1,7 @@
+import type { InferResponseType } from "hono/client";
+import { hc } from "hono/client";
 import { expectTypeOf } from "vitest";
 import type { AppType } from "../../src/index";
-import { hc } from "hono/client";
-import type { InferResponseType } from "hono/client";
 
 // A typed client instance (not executed in type tests)
 const httpClient = hc<AppType>("http://localhost:4096");
@@ -29,7 +29,10 @@ expectTypeOf(httpClient.internal.ready.$get).toBeCallableWith();
 
 // Response typing – health
 type Health200 = InferResponseType<typeof httpClient.internal.health.$get, 200>;
-expectTypeOf<Health200>().toEqualTypeOf<{ status: string; timestamp: string }>();
+expectTypeOf<Health200>().toEqualTypeOf<{
+  status: string;
+  timestamp: string;
+}>();
 // Ensure non-declared status infers to never
 type Health201 = InferResponseType<typeof httpClient.internal.health.$get, 201>;
 expectTypeOf<Health201>().toEqualTypeOf<never>();
@@ -43,12 +46,18 @@ expectTypeOf<Ready200>().toEqualTypeOf<{
 }>();
 
 // Response typing – register (501 only)
-type Register501 = InferResponseType<typeof httpClient.internal.register.$post, 501>;
+type Register501 = InferResponseType<
+  typeof httpClient.internal.register.$post,
+  501
+>;
 expectTypeOf<Register501>().toEqualTypeOf<{
   success: boolean;
   error: { code: string; message: string };
 }>();
-type Register200 = InferResponseType<typeof httpClient.internal.register.$post, 200>;
+type Register200 = InferResponseType<
+  typeof httpClient.internal.register.$post,
+  200
+>;
 expectTypeOf<Register200>().toEqualTypeOf<never>();
 
 // The $url builder exists for declared routes
