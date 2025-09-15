@@ -1,5 +1,6 @@
 {
 	"include": ["**/*.ts"],
+	"exclude": ["tests/**/*.ts"],
 	"extends": "../../tsconfig.json",
 	"compilerOptions": {
 		"target": "ES2022",
