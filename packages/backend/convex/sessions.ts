@@ -1,4 +1,9 @@
-import { internalMutation, internalQuery, query } from "./_generated/server";
+import {
+  action,
+  internalMutation,
+  internalQuery,
+  query,
+} from "./_generated/server";
 import { authenticatedMutation, authenticatedQuery } from "./authenticated";
 import { vv } from "./schema";
 
@@ -95,5 +100,33 @@ export const listUserSessions = authenticatedQuery({
       .withIndex("by_user", (q) => q.eq("userId", ctx.userId))
       .order("desc")
       .take(MAX_SESSIONS_LIMIT);
+  },
+});
+
+// --- Stubs for contract-tested actions (T011, T012) ---
+
+export const provision = action({
+  args: {
+    sessionId: vv.id("sessions"),
+    driver: vv.union(vv.literal("docker"), vv.literal("local")),
+  },
+  returns: vv.object({
+    instanceId: vv.id("instances"),
+    endpoint: vv.string(),
+  }),
+  handler: () => {
+    throw new Error("sessions.provision not implemented");
+  },
+});
+
+export const resume = action({
+  args: { id: vv.id("sessions") },
+  returns: vv.object({
+    success: vv.boolean(),
+    instanceId: vv.optional(vv.id("instances")),
+    error: vv.optional(vv.string()),
+  }),
+  handler: () => {
+    throw new Error("sessions.resume not implemented");
   },
 });
