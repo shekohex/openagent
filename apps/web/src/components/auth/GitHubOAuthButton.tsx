@@ -18,7 +18,7 @@ export function GitHubOAuthButton() {
       type="button"
       variant="outline"
     >
-      <SiGithub className="mr-2 size-4" />
+      <SiGithub aria-hidden="true" className="mr-2 size-4" />
       Continue with GitHub
     </Button>
   );
