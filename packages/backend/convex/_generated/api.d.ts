@@ -10,6 +10,7 @@
 
 import type * as auth from "../auth.js";
 import type * as authenticated from "../authenticated.js";
+import type * as export_ from "../export.js";
 import type * as healthCheck from "../healthCheck.js";
 import type * as http from "../http.js";
 import type * as providerKeys from "../providerKeys.js";
@@ -37,6 +38,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   authenticated: typeof authenticated;
+  export: typeof export_;
   healthCheck: typeof healthCheck;
   http: typeof http;
   providerKeys: typeof providerKeys;
