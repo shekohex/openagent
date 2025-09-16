@@ -73,7 +73,7 @@ const updateKeysRoute = createRoute({
   summary: "Update provider keys",
   description: "Rotate/update encrypted provider keys for the sidecar",
   request: {
-    headers: z.object({ Authorization: z.string().optional() }).optional(),
+    headers: z.object({ Authorization: z.string().optional() }),
     body: {
       content: {
         "application/json": {
@@ -114,7 +114,7 @@ const shutdownRoute = createRoute({
   summary: "Graceful shutdown",
   description: "Initiate a graceful shutdown with optional delay",
   request: {
-    headers: z.object({ Authorization: z.string().optional() }).optional(),
+    headers: z.object({ Authorization: z.string().optional() }),
     body: {
       content: {
         "application/json": {
