@@ -114,27 +114,22 @@ apps/
 │   │   ├── components/
 │   │   └── lib/
 │   └── tests/
-├── sidecar/            # Sidecar service
+
+packages/
+├── sidecar/            # Sidecar service (Hono)
 │   ├── src/
 │   │   ├── server.ts
 │   │   ├── auth/
-│   │   └── control/
+│   │   └── routes/
 │   └── tests/
-│
-convex/                 # Backend orchestrator
-├── _generated/
-├── auth.config.ts
-├── schema.ts
-├── sessions.ts
-├── keys.ts
-├── permissions.ts
-└── drivers/
-
-packages/               # Shared libraries
-├── auth-lib/
-├── crypto-lib/
-├── opencode-client/
-└── driver-interface/
+├── backend/convex/     # Backend orchestrator (Convex)
+│   ├── schema.ts
+│   ├── sessions.ts
+│   ├── provisionKeys.ts
+│   ├── export.ts
+│   └── drivers/
+├── crypto-lib/         # Envelope encryption + key exchange
+└── driver-interface/   # Container driver contracts
 
 tests/
 ├── contract/
@@ -142,7 +137,10 @@ tests/
 └── e2e/
 ```
 
-Note: In this repository, the Convex backend lives under `packages/backend/convex` instead of the repo root `convex/`. The tasks’ Path Conventions already allow both; we will adopt `packages/backend/convex` going forward for driver implementations and backend changes.
+Notes:
+- Backend Convex code lives under `packages/backend/convex` (not `convex/`).
+- Sidecar code lives under `packages/sidecar` (not `apps/sidecar`).
+- For MVP, ephemeral keys use WebCrypto ECDH P-256 across orchestrator and sidecar.
 
 **Structure Decision**: Option 2 - Web application structure (frontend + backend architecture)
 
@@ -220,12 +218,17 @@ _This section describes what the /tasks command will do - DO NOT execute during 
 **Category 1: Sidecar Implementation (Priority 1)**
 
 - Task: Create Hono server scaffold with TypeScript
-- Task: Implement registration endpoint with X25519 key generation
+- Task: Implement registration endpoint with ECDH P-256 ephemeral keypair generation
 - Task: Integrate OpenCode SDK server startup
 - Task: Implement event bridging from OpenCode to orchestrator
 - Task: Add terminal WebSocket with PTY support
 - Task: Create health and readiness endpoints
 - Task: Implement graceful shutdown handling
+
+Curve Alignment Impact (MVP): Switching to ECDH P-256 for ephemeral keys requires:
+- Updating Convex validators that previously assumed 32-byte X25519 public keys (e.g., `provisionKeys.registerSidecar`) to accept P-256 raw or compressed point formats.
+- Ensuring provider key sealing/unsealing continues to use the derived AES-GCM key from P-256 ECDH.
+- Documenting the public key encoding (base64url of raw P-256 key) for sidecar↔orchestrator exchange.
 
 **Category 2: Container Provisioning (Priority 1)**
 

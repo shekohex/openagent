@@ -37,7 +37,7 @@
 
 ## Path Conventions
 
-- **Sidecar**: `apps/sidecar/src/`, `apps/sidecar/tests/`
+- **Sidecar**: `packages/sidecar/src/`, `packages/sidecar/tests/`
 - **Frontend**: `apps/web/app/`, `apps/web/tests/`
 - **Backend**: `convex/`, `packages/backend/convex/`
 - **Libraries**: `packages/{lib-name}/src/`
@@ -45,7 +45,7 @@
 
 ## Phase 3.1: Setup
 
-- [x] T001 Create sidecar project structure in apps/sidecar with Hono + TypeScript
+- [x] T001 Create sidecar project structure in packages/sidecar with Hono + TypeScript
 - [x] T002 Initialize sidecar dependencies (hono, @opencode-ai/sdk, dockerode)
 - [x] T003 [P] Configure Docker build for sidecar container image
 - [x] T004 [P] Create driver-interface package structure in packages/driver-interface
@@ -81,14 +81,14 @@
 
 ### Sidecar Service Implementation
 
-- [ ] T019 Implement Hono server scaffold in apps/sidecar/src/server.ts
-- [ ] T020 Implement X25519 key generation in apps/sidecar/src/auth/keys.ts
-- [ ] T021 Implement registration endpoint in apps/sidecar/src/routes/internal.ts
-- [ ] T022 Integrate OpenCode SDK server in apps/sidecar/src/opencode/server.ts
-- [ ] T023 Implement event bridging in apps/sidecar/src/events/bridge.ts
-- [ ] T024 Add terminal WebSocket handler in apps/sidecar/src/terminal/websocket.ts
-- [ ] T025 Implement health/ready endpoints in apps/sidecar/src/routes/health.ts
-- [ ] T026 Add graceful shutdown handler in apps/sidecar/src/lifecycle/shutdown.ts
+- [x] T019 Implement Hono server scaffold in packages/sidecar/src/server.ts
+- [x] T020 Implement ECDH P-256 key generation in packages/sidecar/src/auth/keys.ts
+- [ ] T021 Implement registration endpoint in packages/sidecar/src/routes/internal.ts
+- [ ] T022 Integrate OpenCode SDK server in packages/sidecar/src/opencode/server.ts
+- [ ] T023 Implement event bridging in packages/sidecar/src/events/bridge.ts
+- [ ] T024 Add terminal WebSocket handler in packages/sidecar/src/terminal/websocket.ts
+- [ ] T025 Implement health/ready endpoints in packages/sidecar/src/routes/health.ts
+- [ ] T026 Add graceful shutdown handler in packages/sidecar/src/lifecycle/shutdown.ts
 
 ### Container Driver Implementation
 
@@ -183,6 +183,7 @@ Task: "Add ProviderKeyManager component in apps/web/app/components/settings/prov
 - Commit after each task using conventional commits
 - Sidecar implementation is highest priority (blocking)
 - Frontend components can develop in parallel once backend ready
+- Curve selection: Using ECDH P-256 for ephemeral keys. Update Convex validators that assumed 32-byte X25519 keys (e.g., provisionKeys) during registration task (T021) implementation.
 
 ## Task Generation Rules Applied
 
