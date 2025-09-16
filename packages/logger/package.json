@@ -2,6 +2,7 @@
   "name": "@openagent/logger",
   "version": "1.0.0",
   "main": "dist/src/index.js",
+  "types": "src/index.ts",
   "scripts": {
     "build": "tsc -b"
   },
