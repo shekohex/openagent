@@ -1,4 +1,8 @@
-import { logger } from "@openagent/logger";
+const logger = {
+  info: (...args: unknown[]) => console.log(...args),
+  warn: (...args: unknown[]) => console.warn(...args),
+};
+
 import { serve } from "bun";
 import { config } from "./config";
 import app from "./index";
