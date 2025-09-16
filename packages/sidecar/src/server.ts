@@ -1,11 +1,7 @@
-const logger = {
-  info: (...args: unknown[]) => console.log(...args),
-  warn: (...args: unknown[]) => console.warn(...args),
-};
-
 import { serve } from "bun";
 import { config } from "./config";
 import app from "./index";
+import { logger } from "./logger";
 
 const server = serve({
   fetch: app.fetch,
@@ -21,10 +17,10 @@ const gracefulShutdown = (signal: string) => {
   server.stop();
 
   setTimeout(() => {
-    logger.warn(
-      { timeoutMs: SHUTDOWN_TIMEOUT_MS },
-      "Shutdown timeout exceeded, forcing exit"
-    );
+    logger.warn({
+      timeoutMs: SHUTDOWN_TIMEOUT_MS,
+      msg: "Shutdown timeout exceeded, forcing exit",
+    });
     process.exit(1);
   }, SHUTDOWN_TIMEOUT_MS);
 };
