@@ -24,3 +24,19 @@ const modules = import.meta.glob("../convex/**/*.*s");
 
 // Register modules with the test utility system
 setConvexModules(modules);
+
+/**
+ * Initialize Convex test environment for external packages (sidecar, etc.).
+ * Exports a helper so other packages can reuse backend Convex modules during
+ * their own Vitest setup.
+ */
+export function initializeConvexTestEnv(): void {
+  // Ensure required env is present for crypto operations in tests
+  if (!process.env.OPENAGENT_MASTER_KEY) {
+    process.env.OPENAGENT_MASTER_KEY =
+      "VStudIfC2sdNEX6WvRXhBLYmMZOvx7PID1Szvc9kMBg=";
+  }
+  // @ts-expect-error import.meta.glob available in Vite/Vitest
+  const externalModules = import.meta.glob("../convex/**/*.*s");
+  setConvexModules(externalModules);
+}
