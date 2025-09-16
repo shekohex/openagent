@@ -1,5 +1,5 @@
-import type { TestConvex } from "convex-test";
 import type { GenericSchema, SchemaDefinition } from "convex/server";
+import type { TestConvex } from "convex-test";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Email } from "../../../convex/schema";
