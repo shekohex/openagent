@@ -11,6 +11,7 @@
     "test:once": "vitest run"
   },
   "dependencies": {
+    "@openagent/crypto-lib": "workspace:*",
     "@hono/zod-openapi": "^1.1.0",
     "@openagent/logger": "workspace:*",
     "@opencode-ai/sdk": "0.8.0",
