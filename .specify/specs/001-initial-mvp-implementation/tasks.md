@@ -49,7 +49,7 @@
 - [x] T002 Initialize sidecar dependencies (hono, @opencode-ai/sdk, dockerode)
 - [x] T003 [P] Configure Docker build for sidecar container image
 - [x] T004 [P] Create driver-interface package structure in packages/driver-interface
-- [ ] T005 [P] Create crypto-lib package for envelope encryption in packages/crypto-lib
+- [x] T005 [P] Create crypto-lib package for envelope encryption in packages/crypto-lib
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 
@@ -57,25 +57,25 @@
 
 ### Contract Tests - Sidecar API
 
-- [ ] T006 [P] Contract test POST /internal/register in tests/contract/sidecar-register.test.ts
-- [ ] T007 [P] Contract test GET /internal/health in tests/contract/sidecar-health.test.ts
-- [ ] T008 [P] Contract test GET /internal/ready in tests/contract/sidecar-ready.test.ts
-- [ ] T009 [P] Contract test PUT /internal/update-keys in tests/contract/sidecar-update-keys.test.ts
-- [ ] T010 [P] Contract test POST /internal/shutdown in tests/contract/sidecar-shutdown.test.ts
+- [x] T006 [P] Contract test POST /internal/register in tests/contract/sidecar-register.test.ts
+- [x] T007 [P] Contract test GET /internal/health in tests/contract/sidecar-health.test.ts
+- [x] T008 [P] Contract test GET /internal/ready in tests/contract/sidecar-ready.test.ts
+- [x] T009 [P] Contract test PUT /internal/update-keys in tests/contract/sidecar-update-keys.test.ts
+- [x] T010 [P] Contract test POST /internal/shutdown in tests/contract/sidecar-shutdown.test.ts
 
 ### Contract Tests - Convex Functions
 
-- [ ] T011 [P] Contract test sessions.provision action in tests/contract/convex-provision.test.ts
-- [ ] T012 [P] Contract test sessions.resume action in tests/contract/convex-resume.test.ts
-- [ ] T013 [P] Contract test sessions.export action in tests/contract/convex-export.test.ts
-- [ ] T014 [P] Contract test events.publish mutation in tests/contract/convex-events.test.ts
+- [x] T011 [P] Contract test sessions.provision action in tests/contract/convex-provision.test.ts
+- [x] T012 [P] Contract test sessions.resume action in tests/contract/convex-resume.test.ts
+- [x] T013 [P] Contract test sessions.export action in tests/contract/convex-export.test.ts
+- [x] T014 [P] Contract test events.publish mutation in tests/contract/convex-events.test.ts
 
 ### Integration Tests
 
-- [ ] T015 [P] Integration test sidecar registration flow in tests/integration/sidecar-registration.test.ts
-- [ ] T016 [P] Integration test container provisioning in tests/integration/docker-provision.test.ts
-- [ ] T017 [P] Integration test key encryption/decryption in tests/integration/crypto-flow.test.ts
-- [ ] T018 [P] Integration test session lifecycle in tests/integration/session-lifecycle.test.ts
+- [x] T015 [P] Integration test sidecar registration flow in tests/integration/sidecar-registration.test.ts
+- [x] T016 [P] Integration test container provisioning in tests/integration/docker-provision.test.ts
+- [x] T017 [P] Integration test key encryption/decryption in tests/integration/crypto-flow.test.ts
+- [x] T018 [P] Integration test session lifecycle in tests/integration/session-lifecycle.test.ts
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 
