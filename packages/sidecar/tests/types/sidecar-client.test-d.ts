@@ -25,7 +25,15 @@ httpClient.internal.ready.$post;
 expectTypeOf(httpClient.internal.health.$get).toBeCallableWith();
 expectTypeOf(httpClient.internal.ready.$get).toBeCallableWith();
 
-// The register route currently has no request body defined – we don't pass one here.
+// POST register requires a body conforming to the schema
+expectTypeOf(httpClient.internal.register.$post).toBeCallableWith({
+  json: {
+    sessionId: "session",
+    registrationToken: "token",
+    publicKey: "pub",
+    keyId: "kid",
+  },
+});
 
 // Response typing – health
 type Health200 = InferResponseType<typeof httpClient.internal.health.$get, 200>;
@@ -45,20 +53,42 @@ expectTypeOf<Ready200>().toEqualTypeOf<{
   timestamp: string;
 }>();
 
-// Response typing – register (501 only)
-type Register501 = InferResponseType<
-  typeof httpClient.internal.register.$post,
-  501
->;
-expectTypeOf<Register501>().toEqualTypeOf<{
-  success: boolean;
-  error: { code: string; message: string };
-}>();
+// Response typing – register success/error envelopes
 type Register200 = InferResponseType<
   typeof httpClient.internal.register.$post,
   200
 >;
-expectTypeOf<Register200>().toEqualTypeOf<never>();
+expectTypeOf<Register200>().toEqualTypeOf<{
+  success: true;
+  sidecarAuthToken: string;
+  orchestratorPublicKey: string;
+  orchestratorKeyId: string;
+  opencodePort: number;
+  encryptedProviderKeys: {
+    ciphertext: string;
+    nonce: string;
+    tag: string;
+    recipientKeyId: string;
+  };
+}>();
+
+type Register400 = InferResponseType<
+  typeof httpClient.internal.register.$post,
+  400
+>;
+expectTypeOf<Register400>().toEqualTypeOf<{
+  success: false;
+  error: { code: string; message: string; id?: string };
+}>();
+
+type Register403 = InferResponseType<
+  typeof httpClient.internal.register.$post,
+  403
+>;
+expectTypeOf<Register403>().toEqualTypeOf<{
+  success: false;
+  error: { code: string; message: string; id?: string };
+}>();
 
 // The $url builder exists for declared routes
 expectTypeOf(httpClient.internal.ready.$url).toBeFunction();
