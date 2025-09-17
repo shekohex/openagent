@@ -26,8 +26,11 @@ const MILLISECONDS_PER_SECOND = 1000;
 const PAYLOAD_AGE_MINUTES = 5;
 const MAX_PAYLOAD_AGE_MS = PAYLOAD_AGE_MINUTES * 60 * MILLISECONDS_PER_SECOND;
 
+const LEGACY_X25519_PUBLIC_KEY_LENGTH = 32;
+const P256_UNCOMPRESSED_PUBLIC_KEY_LENGTH = 65;
+const UNCOMPRESSED_POINT_PREFIX = 0x04;
+
 export class KeyExchange {
-  private static readonly KEY_LENGTH = 32;
   private static readonly NONCE_LENGTH = 12;
 
   static async generateEphemeralKeyPair(): Promise<EphemeralKeyPair> {
@@ -177,7 +180,18 @@ export class KeyExchange {
   static validatePublicKey(publicKey: string): boolean {
     try {
       const keyBytes = base64UrlToUint8Array(publicKey);
-      return keyBytes.length === KeyExchange.KEY_LENGTH;
+
+      if (keyBytes.length === LEGACY_X25519_PUBLIC_KEY_LENGTH) {
+        return true;
+      }
+
+      if (keyBytes.length === P256_UNCOMPRESSED_PUBLIC_KEY_LENGTH) {
+        // SEC1 uncompressed points must start with 0x04. Prevent accidental
+        // acceptance of compressed encodings or malformed data.
+        return keyBytes.at(0) === UNCOMPRESSED_POINT_PREFIX;
+      }
+
+      return false;
     } catch {
       return false;
     }

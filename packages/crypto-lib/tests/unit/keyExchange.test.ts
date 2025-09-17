@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CryptoError } from "../../src";
+import { CryptoError, uint8ArrayToBase64Url } from "../../src";
 import {
   type EphemeralKeyPair,
   KeyExchange,
@@ -274,14 +274,26 @@ describe("ECDH Key Exchange", () => {
   });
 
   describe("Validation Functions", () => {
-    it("should validate correct public keys", () => {
-      expect(KeyExchange.validatePublicKey("validbase64url_-key")).toBe(false);
+    it("should validate generated P-256 public keys", async () => {
+      const generated = await KeyExchange.generateEphemeralKeyPair();
+      expect(KeyExchange.validatePublicKey(generated.publicKey)).toBe(true);
+    });
+
+    it("should accept legacy X25519 length public keys", () => {
+      const thirtyTwoZeroBytes = new Uint8Array(32);
+      const legacy = uint8ArrayToBase64Url(thirtyTwoZeroBytes);
+      expect(KeyExchange.validatePublicKey(legacy)).toBe(true);
     });
 
     it("should reject invalid public keys", () => {
       expect(KeyExchange.validatePublicKey("")).toBe(false);
       expect(KeyExchange.validatePublicKey("invalid!@#$")).toBe(false);
       expect(KeyExchange.validatePublicKey("short")).toBe(false);
+      const compressedPoint = new Uint8Array(65);
+      compressedPoint[0] = 0x02;
+      expect(KeyExchange.validatePublicKey(uint8ArrayToBase64Url(compressedPoint))).toBe(
+        false
+      );
     });
 
     it("should validate correct key IDs", () => {
