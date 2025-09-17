@@ -120,6 +120,8 @@
       "version": "1.0.0",
       "dependencies": {
         "@hono/zod-openapi": "^1.1.0",
+        "@openagent/crypto-lib": "workspace:*",
+        "@openagent/logger": "workspace:*",
         "@opencode-ai/sdk": "0.8.0",
         "hono": "^4.9.7",
         "zod": "^4.1.8",
