@@ -350,7 +350,7 @@ function errorResponse({
   code,
   message,
   requestId,
-}: ErrorResponseArgs): Response {
+}: ErrorResponseArgs) {
   return context.json(
     {
       success: false,
