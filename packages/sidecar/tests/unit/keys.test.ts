@@ -14,6 +14,7 @@ describe("sidecar auth keys", () => {
     expect(kp.publicKey.length).toBeGreaterThan(10);
     expect(kp.privateKey.length).toBeGreaterThan(10);
     expect(kp.keyId.length).toBeGreaterThan(5);
+    expect(isValidPublicKey(kp.publicKey)).toBe(true);
     // Public key validator currently enforces 32-byte base64url keys; P-256 raw is longer.
     // We'll validate keyId here and leave public key length checks to integration tests.
     expect(isValidKeyId(kp.keyId)).toBe(true);
@@ -23,5 +24,9 @@ describe("sidecar auth keys", () => {
     const a = await generateSidecarKeyPair();
     const b = await generateSidecarKeyPair();
     expect(a.keyId).not.toBe(b.keyId);
+  });
+
+  it("rejects obviously invalid public keys", () => {
+    expect(isValidPublicKey("invalid")).toBe(false);
   });
 });
