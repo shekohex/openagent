@@ -41,4 +41,9 @@ const app = new OpenAPIHono<{
   });
 
 export type AppType = typeof app;
+export {
+  registerSidecar as registerSidecarWithOrchestrator,
+  resetOrchestratorAdapter,
+  setOrchestratorAdapter,
+} from "./orchestrator/adapter";
 export default app;
