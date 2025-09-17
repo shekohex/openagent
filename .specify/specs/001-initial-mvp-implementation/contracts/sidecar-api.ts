@@ -35,18 +35,21 @@ export const sidecarInternalEndpoints = {
     request: {
       sessionId: string,           // Convex session ID (must match OpenCode session ID)
       registrationToken: string,    // One-time token from orchestrator
-      publicKey: string,           // X25519 public key for envelope encryption
+      publicKey: string,           // P-256 public key for envelope encryption
+      keyId: string,               // URL-safe base64 key identifier for the sidecar
     },
     response: {
       success: boolean,
       sidecarAuthToken: string,     // Bearer token for subsequent requests
       orchestratorPublicKey: string, // For encrypting responses
+      orchestratorKeyId: string,     // Key identifier for orchestrator public key
       opencodePort: number,          // Port to bind OpenCode server to
-      encryptedProviderKeys: Array<{
-        provider: string,
-        encryptedKey: string,      // Encrypted with sidecar's public key
+      encryptedProviderKeys: {
+        ciphertext: string,
         nonce: string,
-      }>,
+        tag: string,
+        recipientKeyId: string,
+      },
     },
   },
 
