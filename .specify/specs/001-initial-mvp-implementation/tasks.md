@@ -83,7 +83,7 @@
 
 - [x] T019 Implement Hono server scaffold in packages/sidecar/src/server.ts
 - [x] T020 Implement ECDH P-256 key generation in packages/sidecar/src/auth/keys.ts
-- [ ] T021 Implement registration endpoint in packages/sidecar/src/routes/internal.ts
+- [x] T021 Implement registration endpoint in packages/sidecar/src/routes/internal.ts
 - [ ] T022 Integrate OpenCode SDK server in packages/sidecar/src/opencode/server.ts
 - [ ] T023 Implement event bridging in packages/sidecar/src/events/bridge.ts
 - [ ] T024 Add terminal WebSocket handler in packages/sidecar/src/terminal/websocket.ts
