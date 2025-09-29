@@ -7,4 +7,12 @@ export const logger = {
     // No-op stub: real logger wired during runtime bootstrap.
     return;
   },
+  error: (..._args: unknown[]) => {
+    // No-op stub: real logger wired during runtime bootstrap.
+    return;
+  },
+  debug: (..._args: unknown[]) => {
+    // No-op stub: real logger wired during runtime bootstrap.
+    return;
+  },
 } as const;
