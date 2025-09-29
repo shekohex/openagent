@@ -4,6 +4,12 @@ import type { RequestIdVariables } from "hono/request-id";
 import { z } from "zod";
 import { isValidKeyId, isValidPublicKey } from "../auth/keys";
 import { HTTP_STATUS } from "../constants";
+
+const DEFAULT_GRACE_PERIOD_MS = 1000;
+
+import { logger } from "../logger";
+import { eventSubscriber } from "../opencode/events";
+import { opencodeServer } from "../opencode/server";
 import { OrchestratorError, registerSidecar } from "../orchestrator/adapter";
 
 const registerRequestSchema = z.object({
@@ -182,20 +188,52 @@ const shutdownRoute = createRoute({
     body: {
       content: {
         "application/json": {
-          schema: z.object({ gracePeriodMs: z.number().optional() }).optional(),
+          schema: z
+            .object({
+              gracePeriodMs: z.any().optional(),
+            })
+            .optional(),
         },
       },
     },
   },
   responses: {
-    501: {
-      description: "Not Implemented",
+    200: {
+      description: "Shutdown initiated successfully",
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.object({
+              message: z.string(),
+              gracePeriodMs: z.number(),
+            }),
+          }),
+        },
+      },
+    },
+    400: {
+      description: "Bad Request",
       content: {
         "application/json": {
           schema: z.object({
             success: z.literal(false),
             error: z.object({
-              code: z.literal("NOT_IMPLEMENTED"),
+              code: z.literal("INVALID_GRACE_PERIOD"),
+              message: z.string(),
+            }),
+          }),
+        },
+      },
+    },
+    500: {
+      description: "Internal Server Error",
+      content: {
+        "application/json": {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.object({
+              code: z.literal("SHUTDOWN_FAILED"),
               message: z.string(),
             }),
           }),
@@ -208,16 +246,28 @@ const shutdownRoute = createRoute({
 const app = new OpenAPIHono<{
   Variables: RequestIdVariables;
 }>()
-  .openapi(readyRoute, (c) =>
-    c.json(
+  .openapi(readyRoute, (c) => {
+    const serverState = opencodeServer.getState();
+    const isHealthy = opencodeServer.isHealthy();
+
+    // Service is ready if OpenCode server is running and healthy
+    const ready = serverState.isRunning && isHealthy;
+
+    return c.json(
       {
         status: "ok",
-        ready: true,
+        ready,
+        opencodeServer: {
+          isRunning: serverState.isRunning,
+          isHealthy,
+          url: serverState.url,
+          sessionId: serverState.sessionId,
+        },
         timestamp: new Date().toISOString(),
       },
       HTTP_STATUS.OK
-    )
-  )
+    );
+  })
   .openapi(registerRoute, async (c) => {
     const requestId = c.get("requestId");
     const payload = c.req.valid("json");
@@ -250,17 +300,70 @@ const app = new OpenAPIHono<{
         sidecarKeyId: payload.keyId,
       });
 
-      return c.json(
-        {
-          success: true,
-          sidecarAuthToken: result.sidecarAuthToken,
-          orchestratorPublicKey: result.orchestratorPublicKey,
-          orchestratorKeyId: result.orchestratorKeyId,
-          opencodePort: result.opencodePort,
-          encryptedProviderKeys: result.encryptedProviderKeys,
-        },
-        HTTP_STATUS.OK
-      );
+      // Start OpenCode server after successful registration
+      try {
+        const opencodeUrl = await opencodeServer.start({
+          hostname: "127.0.0.1",
+          port: result.opencodePort,
+          sessionId: payload.sessionId,
+          providerKeys: [], // Provider keys will be injected separately
+          orchestratorConfig: {
+            // Pass orchestrator config if needed
+          },
+        });
+
+        logger.info(
+          {
+            sessionId: payload.sessionId,
+            opencodeUrl,
+            opencodePort: result.opencodePort,
+          },
+          "OpenCode server started successfully after registration"
+        );
+
+        // Subscribe to events
+        await eventSubscriber.subscribeToEvents();
+
+        return c.json(
+          {
+            success: true,
+            sidecarAuthToken: result.sidecarAuthToken,
+            orchestratorPublicKey: result.orchestratorPublicKey,
+            orchestratorKeyId: result.orchestratorKeyId,
+            opencodePort: result.opencodePort,
+            encryptedProviderKeys: result.encryptedProviderKeys,
+            opencodeUrl,
+          },
+          HTTP_STATUS.OK
+        );
+      } catch (opencodeError) {
+        logger.error(
+          {
+            sessionId: payload.sessionId,
+            error:
+              opencodeError instanceof Error
+                ? opencodeError.message
+                : String(opencodeError),
+          },
+          "Failed to start OpenCode server after registration"
+        );
+
+        // Return registration success but note OpenCode server failure
+        return c.json(
+          {
+            success: true,
+            sidecarAuthToken: result.sidecarAuthToken,
+            orchestratorPublicKey: result.orchestratorPublicKey,
+            orchestratorKeyId: result.orchestratorKeyId,
+            opencodePort: result.opencodePort,
+            encryptedProviderKeys: result.encryptedProviderKeys,
+            opencodeUrl: null,
+            warning:
+              "Registration successful but OpenCode server failed to start",
+          },
+          HTTP_STATUS.OK
+        );
+      }
     } catch (error) {
       if (error instanceof OrchestratorError) {
         const status = normalizeStatus(error.status);
@@ -283,15 +386,28 @@ const app = new OpenAPIHono<{
       });
     }
   })
-  .openapi(healthRoute, (c) =>
-    c.json(
+  .openapi(healthRoute, (c) => {
+    const serverState = opencodeServer.getState();
+    const isHealthy = opencodeServer.isHealthy();
+
+    return c.json(
       {
         status: "ok",
+        opencodeServer: {
+          isRunning: serverState.isRunning,
+          isHealthy,
+          url: serverState.url,
+          sessionId: serverState.sessionId,
+          uptime: serverState.startTime
+            ? Date.now() - serverState.startTime
+            : null,
+          lastHealthCheck: serverState.lastHealthCheck,
+        },
         timestamp: new Date().toISOString(),
       },
       HTTP_STATUS.OK
-    )
-  )
+    );
+  })
   .openapi(updateKeysRoute, (c) =>
     c.json(
       {
@@ -304,18 +420,76 @@ const app = new OpenAPIHono<{
       HTTP_STATUS.NOT_IMPLEMENTED
     )
   )
-  .openapi(shutdownRoute, (c) =>
-    c.json(
-      {
-        success: false,
-        error: {
-          code: "NOT_IMPLEMENTED",
-          message: "Shutdown not yet implemented",
+  .openapi(shutdownRoute, async (c) => {
+    try {
+      const body = c.req.valid("json");
+      const gracePeriodMs =
+        body?.gracePeriodMs !== undefined
+          ? body.gracePeriodMs
+          : DEFAULT_GRACE_PERIOD_MS;
+
+      // Validate gracePeriodMs - check for null (which is what NaN becomes in JSON) or actual NaN
+      if (
+        gracePeriodMs === null ||
+        typeof gracePeriodMs !== "number" ||
+        Number.isNaN(gracePeriodMs)
+      ) {
+        return c.json(
+          {
+            success: false as const,
+            error: {
+              code: "INVALID_GRACE_PERIOD" as const,
+              message: "gracePeriodMs must be a valid number",
+            },
+          },
+          HTTP_STATUS.BAD_REQUEST
+        );
+      }
+
+      logger.info({ gracePeriodMs }, "Initiating graceful shutdown...");
+
+      // Stop OpenCode server first
+      if (opencodeServer.getState().isRunning) {
+        await opencodeServer.stop();
+        logger.info("OpenCode server stopped successfully");
+      }
+
+      // Unsubscribe from events
+      await eventSubscriber.unsubscribeFromEvents();
+
+      // Schedule shutdown after grace period
+      setTimeout(() => {
+        logger.info("Grace period completed, shutting down...");
+        process.exit(0);
+      }, gracePeriodMs);
+
+      return c.json(
+        {
+          success: true as const,
+          data: {
+            message: "Shutdown initiated",
+            gracePeriodMs,
+          },
         },
-      },
-      HTTP_STATUS.NOT_IMPLEMENTED
-    )
-  );
+        HTTP_STATUS.OK
+      );
+    } catch (error) {
+      logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        "Failed to initiate shutdown"
+      );
+      return c.json(
+        {
+          success: false as const,
+          error: {
+            code: "SHUTDOWN_FAILED" as const,
+            message: "Failed to initiate shutdown",
+          },
+        },
+        HTTP_STATUS.INTERNAL_SERVER_ERROR
+      );
+    }
+  });
 
 // (no-op) previous unchained block removed in favor of a single chained creation
 
