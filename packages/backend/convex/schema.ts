@@ -129,6 +129,14 @@ const schema = defineSchema({
   })
     .index("by_session", ["sessionId"])
     .index("by_type", ["sessionId", "type"]),
+
+  sessionEvents: defineTable({
+    sessionId: v.id("sessions"),
+    type: v.string(),
+    source: v.string(),
+    payload: v.any(),
+    timestamp: v.number(),
+  }).index("by_session", ["sessionId", "timestamp"]),
 });
 
 export const vv = typedV(schema);
