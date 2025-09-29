@@ -1,3 +1,4 @@
+import path from "node:path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
@@ -11,6 +12,14 @@ export default defineConfig({
       include: ["tests/**/*.test-d.ts"],
       // Use a test-specific tsconfig that includes test files
       tsconfig: "./tsconfig.tests.json",
+    },
+  },
+  resolve: {
+    alias: {
+      "@opencode-ai/sdk": path.resolve(
+        __dirname,
+        "./tests/mocks/opencode-sdk.ts"
+      ),
     },
   },
 });
