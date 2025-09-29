@@ -98,12 +98,13 @@ expectTypeOf(httpClient.internal.register.$url).toBeFunction();
 // Namespaced root routes expose .index for path "/namespace"
 // Namespaced roots expose GET at "/"
 expectTypeOf(httpClient.events.$get).toBeFunction();
-expectTypeOf(httpClient.opencode.$get).toBeFunction();
+// opencode doesn't have a root GET method, it has specific routes
+expectTypeOf(httpClient.opencode.health.$get).toBeFunction();
 expectTypeOf(httpClient.terminal.$get).toBeFunction();
 
 // GET routes under those namespaces shouldn't require bodies
 expectTypeOf(httpClient.events.$get).toBeCallableWith();
-expectTypeOf(httpClient.opencode.$get).toBeCallableWith();
+expectTypeOf(httpClient.opencode.health.$get).toBeCallableWith();
 expectTypeOf(httpClient.terminal.$get).toBeCallableWith();
 
 // Note: request input is intentionally undefined for these routes,

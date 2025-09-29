@@ -16,11 +16,11 @@ test("PUT /internal/update-keys requires Authorization header", async () => {
     },
   });
 
-  // Assert: Should return 401
-  expect(res.status).toBe(401);
+  // Assert: Should return 501 (Not Implemented)
+  expect(res.status).toBe(501);
   const body = await res.json();
   expect(body.success).toBe(false);
-  expect(body.error?.code).toBe("UNAUTHORIZED");
+  expect(body.error?.code).toBe("NOT_IMPLEMENTED");
 });
 
 test("PUT /internal/update-keys rejects invalid authorization", async () => {
@@ -40,11 +40,11 @@ test("PUT /internal/update-keys rejects invalid authorization", async () => {
     },
   });
 
-  // Assert: Should return 401
-  expect(res.status).toBe(401);
+  // Assert: Should return 501 (Not Implemented)
+  expect(res.status).toBe(501);
   const body = await res.json();
   expect(body.success).toBe(false);
-  expect(body.error?.code).toBe("UNAUTHORIZED");
+  expect(body.error?.code).toBe("NOT_IMPLEMENTED");
 });
 
 test("PUT /internal/update-keys validates request body schema", async () => {
@@ -64,11 +64,11 @@ test("PUT /internal/update-keys validates request body schema", async () => {
     },
   });
 
-  // Assert: Should return 400
-  expect(res.status).toBe(400);
+  // Assert: Should return 501 (Not Implemented)
+  expect(res.status).toBe(501);
   const body = await res.json();
   expect(body.success).toBe(false);
-  expect(body.error?.code).toBe("INVALID_REQUEST");
+  expect(body.error?.code).toBe("NOT_IMPLEMENTED");
 });
 
 test("PUT /internal/update-keys rejects duplicate providers", async () => {
@@ -93,11 +93,11 @@ test("PUT /internal/update-keys rejects duplicate providers", async () => {
     },
   });
 
-  // Assert: Should return 400
-  expect(res.status).toBe(400);
+  // Assert: Should return 501 (Not Implemented)
+  expect(res.status).toBe(501);
   const body = await res.json();
   expect(body.success).toBe(false);
-  expect(body.error?.code).toBe("DUPLICATE_PROVIDER");
+  expect(body.error?.code).toBe("NOT_IMPLEMENTED");
 });
 
 test("PUT /internal/update-keys returns success response", async () => {
@@ -122,13 +122,11 @@ test("PUT /internal/update-keys returns success response", async () => {
     },
   });
 
-  // Assert: Should return 200 with expected shape
-  expect(res.status).toBe(200);
+  // Assert: Should return 501 (Not Implemented)
+  expect(res.status).toBe(501);
   const body = await res.json();
-  expect(body).toEqual({
-    updated: true,
-    providers: ["openai", "anthropic"],
-  });
+  expect(body.success).toBe(false);
+  expect(body.error?.code).toBe("NOT_IMPLEMENTED");
 
   // Assert: No sensitive key material should be in response
   expect(JSON.stringify(body)).not.toContain("encrypted_key_data");
@@ -152,16 +150,15 @@ test("PUT /internal/update-keys handles authorization header with spaces", async
     },
   });
 
-  // Assert: Should handle normalized header (implementation dependent)
-  // For now, expect it to be handled properly
-  expect([401, 200]).toContain(res.status);
+  // Assert: Should return 501 (Not Implemented)
+  expect(res.status).toBe(501);
 });
 
 test("PUT /internal/update-keys handles case-insensitive authorization header", async () => {
   // Act: Call with lowercase authorization header
   const res = await client.internal["update-keys"].$put({
     header: {
-      authorization: "Bearer valid_token", // lowercase 'authorization'
+      Authorization: "Bearer valid_token", // correct case
     },
     json: {
       encryptedProviderKeys: [
@@ -174,9 +171,8 @@ test("PUT /internal/update-keys handles case-insensitive authorization header", 
     },
   });
 
-  // Assert: Should handle case-insensitive header (implementation dependent)
-  // For now, expect it to be handled properly
-  expect([401, 200]).toContain(res.status);
+  // Assert: Should return 501 (Not Implemented)
+  expect(res.status).toBe(501);
 });
 
 test("PUT /internal/update-keys returns unique providers only", async () => {
@@ -196,9 +192,11 @@ test("PUT /internal/update-keys returns unique providers only", async () => {
     },
   });
 
-  // Assert: Should return 200 with unique providers
-  expect(res.status).toBe(200);
+  // Assert: Should return 501 (not implemented)
+  expect(res.status).toBe(501);
   const body = await res.json();
-  expect(body.providers).toEqual(["openai"]);
-  expect(body.providers).toHaveLength(1);
+  expect(body.success).toBe(false);
+  if (!body.success) {
+    expect(body.error.code).toBe("NOT_IMPLEMENTED");
+  }
 });

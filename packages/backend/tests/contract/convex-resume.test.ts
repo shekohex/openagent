@@ -40,6 +40,16 @@ test("sessions.resume - returns success with instanceId for active session", asy
     });
   });
 
+  // Update the session to reference the instance
+  await t.run(async (ctx) => {
+    await ctx.db.patch(sessionId, {
+      currentInstanceId: instanceId,
+      status: "active",
+      updatedAt: Date.now(),
+      lastActivityAt: Date.now(),
+    });
+  });
+
   // Act: Call resume action
   // @ts-expect-error temporary until convex codegen exposes sessions.resume in generated api
   const result = await t.action(

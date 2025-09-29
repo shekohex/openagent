@@ -100,6 +100,8 @@ describe("POST /internal/register", () => {
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.success).toBe(false);
-    expect(body.error?.code).toBe("INVALID_PUBLIC_KEY");
+    if (!body.success) {
+      expect(body.error.code).toBe("INVALID_PUBLIC_KEY");
+    }
   });
 });

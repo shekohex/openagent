@@ -1,6 +1,7 @@
 import type { SidecarKeyPair } from "../../src/auth/keys";
 import { generateSidecarKeyPair } from "../../src/auth/keys";
 
+// Type test - this function is not called but validates types at compile time
 async function _t() {
   const kp = await generateSidecarKeyPair();
   // type assertions
@@ -12,3 +13,6 @@ async function _t() {
   Number.isFinite(id.length);
   return _;
 }
+
+// Export to avoid unused function warning
+export { _t };
