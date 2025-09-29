@@ -7,7 +7,7 @@ import {
 import { v } from "convex/values";
 import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
-import { internalMutation } from "./_generated/server";
+import { internalMutation, type MutationCtx } from "./_generated/server";
 
 const MILLISECONDS_PER_SECOND = 1000;
 const MAX_TOKEN_AGE_MS = 24 * 60 * 60 * MILLISECONDS_PER_SECOND; // 24 hours
@@ -26,6 +26,82 @@ export type ProvisioningResult = {
   error?: string;
   providersCount?: number;
 };
+
+function validateProvisioningArgs(args: {
+  sidecarPublicKey: string;
+  sidecarKeyId: string;
+}): ProvisioningResult | null {
+  if (!KeyExchange.validatePublicKey(args.sidecarPublicKey)) {
+    return {
+      success: false,
+      error: "Invalid sidecar public key format",
+    };
+  }
+
+  if (!KeyExchange.validateKeyId(args.sidecarKeyId)) {
+    return {
+      success: false,
+      error: "Invalid sidecar key ID format",
+    };
+  }
+
+  return null;
+}
+
+function validateSession(
+  session: {
+    status: string;
+    userId: Id<"users">;
+  } | null
+): ProvisioningResult | null {
+  if (!session) {
+    return {
+      success: false,
+      error: "Invalid session or registration token",
+    };
+  }
+
+  if (session.status !== "creating") {
+    return {
+      success: false,
+      error: `Session not in creating state, current state: ${session.status}`,
+    };
+  }
+
+  return null;
+}
+
+async function decryptProviderKeys(
+  ctx: MutationCtx,
+  session: {
+    userId: Id<"users">;
+  },
+  userProviderKeys: {
+    provider: string;
+  }[]
+): Promise<Map<string, string>> {
+  const decryptedKeys = new Map<string, string>();
+
+  for (const keyInfo of userProviderKeys) {
+    try {
+      const decryptedKey = await ctx.runMutation(
+        internal.providerKeys.getProviderKeyInternal,
+        {
+          userId: session.userId,
+          provider: keyInfo.provider,
+        }
+      );
+
+      if (decryptedKey) {
+        decryptedKeys.set(keyInfo.provider, decryptedKey);
+      }
+    } catch {
+      // Silently skip keys that fail to decrypt - overall success is checked later
+    }
+  }
+
+  return decryptedKeys;
+}
 
 export const registerSidecar = internalMutation({
   args: {
@@ -50,18 +126,9 @@ export const registerSidecar = internalMutation({
   }),
   handler: async (ctx, args): Promise<ProvisioningResult> => {
     try {
-      if (!KeyExchange.validatePublicKey(args.sidecarPublicKey)) {
-        return {
-          success: false,
-          error: "Invalid sidecar public key format",
-        };
-      }
-
-      if (!KeyExchange.validateKeyId(args.sidecarKeyId)) {
-        return {
-          success: false,
-          error: "Invalid sidecar key ID format",
-        };
+      const validationError = validateProvisioningArgs(args);
+      if (validationError) {
+        return validationError;
       }
 
       const session = await ctx.runQuery(api.sessions.getByIdWithToken, {
@@ -69,23 +136,21 @@ export const registerSidecar = internalMutation({
         token: args.registrationToken,
       });
 
+      const sessionError = validateSession(session);
+      if (sessionError) {
+        return sessionError;
+      }
+
       if (!session) {
         return {
           success: false,
-          error: "Invalid session or registration token",
-        };
-      }
-
-      if (session.status !== "creating") {
-        return {
-          success: false,
-          error: `Session not in creating state, current state: ${session.status}`,
+          error: "Session not found",
         };
       }
 
       const userProviderKeys = await ctx.runQuery(
-        api.providerKeys.listUserProviderKeys,
-        {}
+        internal.providerKeys.listUserProviderKeysInternal,
+        { userId: session.userId }
       );
 
       if (userProviderKeys.length === 0) {
@@ -95,28 +160,18 @@ export const registerSidecar = internalMutation({
         };
       }
 
-      const decryptedKeys = new Map<string, string>();
-      let _failedKeys = 0;
-
-      // Get decrypted provider keys by calling the internal action
-      for (const keyInfo of userProviderKeys) {
-        try {
-          const decryptedKey = await ctx.runMutation(
-            internal.providerKeys.getProviderKey,
-            {
-              provider: keyInfo.provider,
-            }
-          );
-
-          if (decryptedKey) {
-            decryptedKeys.set(keyInfo.provider, decryptedKey);
-          } else {
-            _failedKeys++;
-          }
-        } catch (_error) {
-          _failedKeys++;
-        }
+      if (!session) {
+        return {
+          success: false,
+          error: "Session not found",
+        };
       }
+
+      const decryptedKeys = await decryptProviderKeys(
+        ctx,
+        session,
+        userProviderKeys
+      );
 
       if (decryptedKeys.size === 0) {
         return {
@@ -158,8 +213,7 @@ export const registerSidecar = internalMutation({
       const errorMessage =
         error instanceof CryptoError
           ? error.message
-          : "Unknown provisioning error";
-
+          : `Unknown provisioning error: ${error instanceof Error ? error.message : String(error)}`;
       return {
         success: false,
         error: errorMessage,
@@ -213,12 +267,14 @@ export const refreshProviderKeys = internalMutation({
 
       const providersToRefresh = args.providers || [];
       const userKeys = await ctx.runQuery(
-        api.providerKeys.listUserProviderKeys,
-        {}
+        internal.providerKeys.listUserProviderKeysInternal,
+        { userId: session.userId }
       );
 
       const relevantKeys = args.providers
-        ? userKeys.filter((key) => providersToRefresh.includes(key.provider))
+        ? userKeys.filter((key: { provider: string }) =>
+            providersToRefresh.includes(key.provider)
+          )
         : userKeys;
 
       if (relevantKeys.length === 0) {
@@ -233,8 +289,9 @@ export const refreshProviderKeys = internalMutation({
       for (const keyInfo of relevantKeys) {
         try {
           const decryptedKey = await ctx.runMutation(
-            internal.providerKeys.getProviderKey,
+            internal.providerKeys.getProviderKeyInternal,
             {
+              userId: session.userId,
               provider: keyInfo.provider,
             }
           );

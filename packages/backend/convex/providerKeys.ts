@@ -345,6 +345,80 @@ export const updateLastUsed = internalMutation({
   },
 });
 
+export const listUserProviderKeysInternal = internalQuery({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const keys = await ctx.db
+      .query("providerKeys")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .collect();
+
+    return keys.map((key) => ({
+      provider: key.provider,
+      keyVersion: key.keyVersion,
+      createdAt: key.createdAt,
+      lastUsedAt: key.lastUsedAt,
+    }));
+  },
+});
+
+export const getProviderKeyInternal = internalMutation({
+  args: {
+    userId: v.id("users"),
+    provider: v.string(),
+  },
+  returns: v.union(v.string(), v.null()),
+  handler: async (ctx, args) => {
+    validateProviderName(args.provider);
+
+    const normalizedProvider = args.provider.trim().toLowerCase();
+
+    // Get the encrypted key directly from database
+    const key = await ctx.db
+      .query("providerKeys")
+      .withIndex("by_provider", (q) =>
+        q.eq("userId", args.userId).eq("provider", normalizedProvider)
+      )
+      .unique();
+
+    if (!key) {
+      return null;
+    }
+
+    try {
+      // Decrypt the key using envelope encryption (Web Crypto API)
+      const envelope = getDefaultEnvelopeEncryption();
+      const storedKey = {
+        encryptedKey: key.encryptedKey,
+        encryptedDataKey: key.encryptedDataKey,
+        keyVersion: key.keyVersion,
+        nonce: key.nonce,
+        tag: key.tag,
+        dataKeyNonce: key.dataKeyNonce,
+        dataKeyTag: key.dataKeyTag,
+        masterKeyId: key.masterKeyId,
+      };
+
+      const decryptedKey = await envelope.decryptProviderKey(storedKey);
+
+      // Update last used timestamp
+      await ctx.db.patch(key._id, {
+        lastUsedAt: Date.now(),
+      });
+
+      return decryptedKey;
+    } catch (error) {
+      if (error instanceof CryptoError) {
+        throw new Error(`Decryption error: ${error.message}`);
+      }
+      throw new Error("Failed to decrypt provider key");
+    }
+  },
+});
+
 export const updateProviderKeyData = internalMutation({
   args: {
     userId: v.id("users"),
